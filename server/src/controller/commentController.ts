@@ -8,9 +8,6 @@ import validateAuth from "../middlewares/validateAuthorization.js";
 const handleGetCommentsByPostId = async (req: Request, res: Response) => {
   const postId = req.params.postId;
 
-  if (!postId) {
-    return res.status(400).json({ error: "Post not found" });
-  }
   const comments = await db.getCommentsByPostId(parseInt(postId));
   res.json(comments);
 };
@@ -22,9 +19,6 @@ const handleCreateComment: RequestHandler[] = [
     const { content } = req.body;
     const { postId } = req.params;
 
-    if (!postId) {
-      return res.status(400).json({ error: "Post not found" });
-    }
     const userId = (req.user as { id: number }).id;
     const comment = await db.createComment({
       content,
