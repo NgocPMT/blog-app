@@ -11,6 +11,12 @@ interface Post {
   userId: number;
 }
 
+interface Comment {
+  content: string;
+  postId: number;
+  userId: number;
+}
+
 const prisma = new PrismaClient();
 
 const getAllPosts = async () => {
@@ -20,13 +26,14 @@ const getAllPosts = async () => {
 
 const createPost = async (post: Post) => {
   const { title, content, userId } = post;
-  await prisma.post.create({
+  const createdPost = await prisma.post.create({
     data: {
       title,
       content,
       user: { connect: { id: userId } },
     },
   });
+  return createdPost;
 };
 
 const updatePost = async ({
@@ -38,7 +45,7 @@ const updatePost = async ({
   title: string;
   content: string;
 }) => {
-  await prisma.post.update({
+  const post = await prisma.post.update({
     where: {
       id,
     },
@@ -47,10 +54,12 @@ const updatePost = async ({
       content,
     },
   });
+  return post;
 };
 
 const deletePost = async (id: number) => {
-  await prisma.post.delete({ where: { id } });
+  const post = await prisma.post.delete({ where: { id } });
+  return post;
 };
 
 const getPostById = async (id: number) => {
@@ -79,6 +88,55 @@ const createUser = async (user: User) => {
   });
 };
 
+const getCommentsByPostId = async (postId: number) => {
+  const comments = await prisma.comment.findMany({
+    where: { postId },
+  });
+  return comments;
+};
+
+const getCommentById = async (id: number) => {
+  const comment = await prisma.comment.findUnique({ where: { id } });
+  return comment ?? null;
+};
+
+const createComment = async (comment: Comment) => {
+  const { content, postId, userId } = comment;
+  const createdComment = await prisma.comment.create({
+    data: {
+      content,
+      post: { connect: { id: postId } },
+      user: { connect: { id: userId } },
+    },
+  });
+  return createdComment;
+};
+
+const updateComment = async ({
+  id,
+  content,
+}: {
+  id: number;
+  content: string;
+}) => {
+  const comment = await prisma.comment.update({
+    where: {
+      id,
+    },
+    data: {
+      content,
+    },
+  });
+  return comment;
+};
+
+const deleteComment = async (id: number) => {
+  const comment = await prisma.comment.delete({
+    where: { id },
+  });
+  return comment;
+};
+
 export default {
   getAllPosts,
   getPostById,
@@ -88,4 +146,9 @@ export default {
   getUserById,
   getUserByUsername,
   createUser,
+  getCommentsByPostId,
+  getCommentById,
+  createComment,
+  updateComment,
+  deleteComment,
 };
