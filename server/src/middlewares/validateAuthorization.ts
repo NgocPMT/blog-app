@@ -21,7 +21,7 @@ const validateCommentAuthorization = async (
   res: Response,
   next: NextFunction
 ) => {
-  const id = parseInt(req.params.postId);
+  const id = parseInt(req.params.commentId);
   const comment = await db.getCommentById(id);
 
   if (!comment) return res.status(404).json({ error: "Comment not found" });
