@@ -29,6 +29,35 @@ const createPost = async (post: Post) => {
   });
 };
 
+const updatePost = async ({
+  id,
+  title,
+  content,
+}: {
+  id: number;
+  title: string;
+  content: string;
+}) => {
+  await prisma.post.update({
+    where: {
+      id,
+    },
+    data: {
+      title,
+      content,
+    },
+  });
+};
+
+const deletePost = async (id: number) => {
+  await prisma.post.delete({ where: { id } });
+};
+
+const getPostById = async (id: number) => {
+  const post = await prisma.post.findUnique({ where: { id } });
+  return post ?? null;
+};
+
 const getUserById = async (id: number) => {
   const user = await prisma.user.findUnique({ where: { id } });
   return user ?? null;
@@ -52,8 +81,11 @@ const createUser = async (user: User) => {
 
 export default {
   getAllPosts,
+  getPostById,
+  createPost,
+  updatePost,
+  deletePost,
   getUserById,
   getUserByUsername,
   createUser,
-  createPost,
 };
