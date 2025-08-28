@@ -2,15 +2,17 @@ import express from "express";
 import type { Express, Request, Response } from "express";
 import "dotenv/config";
 import postRouter from "./routes/postRouter.js";
+import "../config/passport.js";
+import auth from "./routes/auth.js";
 
 const app: Express = express();
 
 app.use(express.json());
 
+app.use(auth);
 app.get("/", (req: Request, res: Response) => {
   return res.json({ message: "Hello World" });
 });
-
 app.use("/posts", postRouter);
 
 const PORT = process.env.PORT;
