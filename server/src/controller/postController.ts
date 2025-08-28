@@ -13,7 +13,6 @@ const handleGetAllPosts = async (req: Request, res: Response) => {
 const handleGetPostById = async (req: Request, res: Response) => {
   const id = parseInt(req.params.postId);
   const post = await db.getPostById(id);
-  if (!post) return res.status(404).json({ error: "Post not found" });
   res.json(post);
 };
 
