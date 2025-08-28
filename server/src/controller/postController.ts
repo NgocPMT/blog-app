@@ -2,7 +2,7 @@ import passport from "passport";
 import type { Request, RequestHandler, Response } from "express";
 import db from "../db/queries.js";
 import validation from "../validation/validation.js";
-import validateUserId from "../middlewares/validateUserId.js";
+import validateAuth from "../middlewares/validateAuthorization.js";
 import validate from "../middlewares/validate.js";
 
 const handleGetAllPosts = async (req: Request, res: Response) => {
@@ -19,7 +19,7 @@ const handleGetPostById = async (req: Request, res: Response) => {
 
 const handleUpdatePost = [
   passport.authenticate("jwt", { session: false }),
-  validateUserId,
+  validateAuth.validatePostAuthorization,
   validate(validation.postValidation),
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.postId);
@@ -31,7 +31,7 @@ const handleUpdatePost = [
 
 const handleDeletePost = [
   passport.authenticate("jwt", { session: false }),
-  validateUserId,
+  validateAuth.validatePostAuthorization,
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.postId);
 
