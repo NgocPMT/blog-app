@@ -7,10 +7,10 @@ postRouter.get("/", postController.handleGetAllPosts);
 
 postRouter.post("/", postController.handleCreatePost);
 
-postRouter.get("/:id", postController.handleGetPostById);
+postRouter.get("/:postId", postController.handleGetPostById);
 
-postRouter.put("/:id", postController.handleUpdatePost);
+postRouter.put("/:postId", postController.handleUpdatePost);
 
-postRouter.delete("/:id", postController.handleDeletePost);
+postRouter.delete("/:postId", postController.handleDeletePost);
 
 export default postRouter;

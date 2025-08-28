@@ -11,7 +11,7 @@ const handleGetAllPosts = async (req: Request, res: Response) => {
 };
 
 const handleGetPostById = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.postId);
   const post = await db.getPostById(id);
   if (!post) return res.status(404).json({ error: "Post not found" });
   res.json(post);
@@ -28,7 +28,7 @@ const handleUpdatePost = [
         .status(400)
         .json({ errors: errors.array().map((error) => error.msg) });
     }
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.postId);
     const { title, content } = req.body;
     await db.updatePost({ id, title, content });
     return res.json({ message: "Update successfully" });
@@ -39,7 +39,7 @@ const handleDeletePost = [
   passport.authenticate("jwt", { session: false }),
   validateUserId,
   async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.postId);
 
     await db.deletePost(id);
     res.json({ message: "Delete successfully" });
