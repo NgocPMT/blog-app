@@ -1,9 +1,9 @@
-import { validationResult } from "express-validator";
 import passport from "passport";
 import type { Request, RequestHandler, Response } from "express";
 import db from "../db/queries.js";
 import validation from "../validation/validation.js";
 import validateUserId from "../middlewares/validateUserId.js";
+import validate from "../middlewares/validate.js";
 
 const handleGetAllPosts = async (req: Request, res: Response) => {
   const posts = await db.getAllPosts();
@@ -20,14 +20,8 @@ const handleGetPostById = async (req: Request, res: Response) => {
 const handleUpdatePost = [
   passport.authenticate("jwt", { session: false }),
   validateUserId,
-  ...validation.postValidation,
+  validate(validation.postValidation),
   async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res
-        .status(400)
-        .json({ errors: errors.array().map((error) => error.msg) });
-    }
     const id = parseInt(req.params.postId);
     const { title, content } = req.body;
     await db.updatePost({ id, title, content });
@@ -48,14 +42,8 @@ const handleDeletePost = [
 
 const handleCreatePost: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
-  ...validation.postValidation,
+  validate(validation.postValidation),
   async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res
-        .status(400)
-        .json({ errors: errors.array().map((error) => error.msg) });
-    }
     const { title, content } = req.body;
     const userId = (req.user as { id: number }).id;
     await db.createPost({ title, content, userId });
