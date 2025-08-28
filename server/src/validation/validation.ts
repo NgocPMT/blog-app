@@ -38,4 +38,13 @@ const postValidation = [
   body("content").trim().notEmpty().withMessage(`Post content ${emptyErr}`),
 ];
 
-export default { registerValidation, loginValidation, postValidation };
+const commentValidation = [
+  body("content").trim().notEmpty().withMessage(`Comment ${emptyErr}`),
+];
+
+export default {
+  registerValidation,
+  loginValidation,
+  postValidation,
+  commentValidation,
+};
