@@ -5,4 +5,6 @@ const postRouter = Router();
 
 postRouter.get("/", postController.getAllPosts);
 
+postRouter.post("/", postController.createPost);
+
 export default postRouter;

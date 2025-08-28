@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
-import validation from "../validation/auth.js";
+import validation from "../validation/validation.js";
 
 interface User {
   id: number;

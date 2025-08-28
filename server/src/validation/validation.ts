@@ -28,4 +28,14 @@ const loginValidation = [
   body("password").trim().notEmpty().withMessage(`Password ${emptyErr}`),
 ];
 
-export default { registerValidation, loginValidation };
+const postValidation = [
+  body("title")
+    .trim()
+    .notEmpty()
+    .withMessage(`Post title ${emptyErr}`)
+    .isLength({ min: 2, max: 255 })
+    .withMessage("Post title must be from 2 to 255 characters"),
+  body("content").trim().notEmpty().withMessage(`Post content ${emptyErr}`),
+];
+
+export default { registerValidation, loginValidation, postValidation };
