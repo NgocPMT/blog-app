@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { Request, Response, RequestHandler } from "express";
 import db from "../db/queries.js";
 import bcrypt from "bcryptjs";
 import passport from "passport";
@@ -13,8 +13,8 @@ interface User {
   password: string;
 }
 
-const handleRegister = [
-  validation.registerValidation,
+const handleRegister: RequestHandler[] = [
+  ...validation.registerValidation,
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
@@ -32,8 +32,8 @@ const handleRegister = [
   },
 ];
 
-const handleLogin = [
-  validation.loginValidation,
+const handleLogin: RequestHandler[] = [
+  ...validation.loginValidation,
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
