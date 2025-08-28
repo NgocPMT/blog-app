@@ -6,7 +6,7 @@ const validateUserId = async (
   res: Response,
   next: NextFunction
 ) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.postId);
   const post = await db.getPostById(id);
 
   if (!post) return res.status(404).json({ error: "Post not found" });
