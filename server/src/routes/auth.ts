@@ -12,7 +12,7 @@ auth.get(
   "/session",
   passport.authenticate("jwt", { session: false }),
   (req: Request, res: Response) => {
-    res.json({ message: "Login successfully" });
+    res.json({ message: "Login successfully", user: req.user });
   }
 );
 
