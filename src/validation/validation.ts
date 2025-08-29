@@ -99,8 +99,8 @@ const userParamValidation: ValidationChain[] = [
 ];
 
 const postQueryValidation: ValidationChain[] = [
-  query("page").isInt().withMessage("User ID must be an integer"),
-  query("limit").isInt().withMessage("User ID must be an integer"),
+  query("page").isInt().withMessage("Page index must be an integer"),
+  query("limit").isInt().withMessage("Pagination must be an integer"),
 ];
 
 export {
