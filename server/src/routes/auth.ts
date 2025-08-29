@@ -1,5 +1,4 @@
-import passport from "passport";
-import { Router, type Request, type Response } from "express";
+import { Router } from "express";
 import authController from "../controller/authController.js";
 
 const auth = Router();
