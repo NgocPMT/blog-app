@@ -44,6 +44,11 @@ const createPost = async (post: Post) => {
   return createdPost;
 };
 
+const updatePostPublished = async (id: number, published: boolean) => {
+  const post = await prisma.post.update({ where: { id }, data: { published } });
+  return post;
+};
+
 const updatePost = async ({
   id,
   title,
@@ -170,6 +175,7 @@ export default {
   createPost,
   updatePost,
   deletePost,
+  updatePostPublished,
   getUserById,
   getUserInformation,
   getUserByUsername,

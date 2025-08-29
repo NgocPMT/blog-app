@@ -58,10 +58,34 @@ const handleCreatePost = [
   },
 ];
 
+const handlePublishPost = [
+  passport.authenticate("jwt", { session: false }),
+  validatePostAuthorization,
+  ...validate(postParamValidation),
+  async (req: Request, res: Response) => {
+    const postId = parseInt(req.params.postId);
+    const post = await db.updatePostPublished(postId, true);
+    res.status(201).json({ message: "Publish successfully", post });
+  },
+];
+
+const handleUnpublishPost = [
+  passport.authenticate("jwt", { session: false }),
+  validatePostAuthorization,
+  ...validate(postParamValidation),
+  async (req: Request, res: Response) => {
+    const postId = parseInt(req.params.postId);
+    const post = await db.updatePostPublished(postId, false);
+    res.status(201).json({ message: "Unpublish successfully", post });
+  },
+];
+
 export default {
   handleGetAllPosts,
   handleGetPostById,
   handleUpdatePost,
   handleDeletePost,
   handleCreatePost,
+  handlePublishPost,
+  handleUnpublishPost,
 };
