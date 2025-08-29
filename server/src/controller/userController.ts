@@ -16,4 +16,15 @@ const handleGetUserById: RequestHandler[] = [
   },
 ];
 
-export default { handleGetUserById };
+const handleGetUserPosts: RequestHandler[] = [
+  passport.authenticate("jwt", { session: false }),
+  validateAuthorization,
+  ...validate(userParamValidation),
+  async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.userId);
+    const posts = await db.getUserPosts(userId);
+    return res.json(posts);
+  },
+];
+
+export default { handleGetUserById, handleGetUserPosts };

@@ -98,6 +98,11 @@ const getUserInformation = async (id: number) => {
   return user ?? null;
 };
 
+const getUserPosts = async (userId: number) => {
+  const posts = await prisma.post.findMany({ where: { userId } });
+  return posts;
+};
+
 const createUser = async (user: User) => {
   const { username, email, password } = user;
   await prisma.user.create({
@@ -169,6 +174,7 @@ export default {
   getUserInformation,
   getUserByUsername,
   getUserByEmail,
+  getUserPosts,
   createUser,
   getCommentsByPostId,
   getCommentById,
