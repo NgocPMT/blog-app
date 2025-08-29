@@ -4,14 +4,10 @@ import db from "../db/queries.js";
 import {
   postValidation,
   postParamValidation,
+  postQueryValidation,
 } from "../validation/validation.js";
 import { validatePostAuthorization } from "../middlewares/validateAuthorization.js";
 import validate from "../middlewares/validate.js";
-
-const handleGetAllPosts = async (req: Request, res: Response) => {
-  const posts = await db.getAllPosts();
-  res.json(posts);
-};
 
 const handleGetPostById: RequestHandler[] = [
   ...validate(postParamValidation),
@@ -19,6 +15,15 @@ const handleGetPostById: RequestHandler[] = [
     const id = parseInt(req.params.postId);
     const post = await db.getPostById(id);
     res.json(post);
+  },
+];
+
+const handleGetPostsPagination: RequestHandler[] = [
+  ...validate(postQueryValidation),
+  async (req: Request, res: Response) => {
+    const { page, limit } = req.query as { page: string; limit: string };
+    const posts = await db.getPublishedPosts(parseInt(page), parseInt(limit));
+    res.json(posts);
   },
 ];
 
@@ -81,11 +86,11 @@ const handleUnpublishPost = [
 ];
 
 export default {
-  handleGetAllPosts,
   handleGetPostById,
   handleUpdatePost,
   handleDeletePost,
   handleCreatePost,
   handlePublishPost,
   handleUnpublishPost,
+  handleGetPostsPagination,
 };

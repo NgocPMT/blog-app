@@ -19,8 +19,14 @@ interface Comment {
 
 const prisma = new PrismaClient();
 
-const getAllPosts = async () => {
-  const posts = await prisma.post.findMany();
+const getPublishedPosts = async (page: number, limit: number) => {
+  const posts = await prisma.post.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    where: {
+      published: true,
+    },
+  });
   return posts;
 };
 
@@ -169,7 +175,7 @@ const deleteComment = async (id: number) => {
 };
 
 export default {
-  getAllPosts,
+  getPublishedPosts,
   getPostById,
   getPostByTitleAndUserId,
   createPost,

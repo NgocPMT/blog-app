@@ -1,10 +1,10 @@
-import { body, param, type ValidationChain } from "express-validator";
+import { body, param, query, type ValidationChain } from "express-validator";
 import type { Request } from "express";
 import db from "../db/queries.js";
 
 const emptyErr = "must not be empty!";
 
-const registerValidation = [
+const registerValidation: ValidationChain[] = [
   body("username")
     .trim()
     .notEmpty()
@@ -40,12 +40,12 @@ const registerValidation = [
     .withMessage("Password confirmation must match the password"),
 ];
 
-const loginValidation = [
+const loginValidation: ValidationChain[] = [
   body("username").trim().notEmpty().withMessage(`Username ${emptyErr}`),
   body("password").trim().notEmpty().withMessage(`Password ${emptyErr}`),
 ];
 
-const postValidation = [
+const postValidation: ValidationChain[] = [
   body("title")
     .trim()
     .notEmpty()
@@ -61,11 +61,11 @@ const postValidation = [
   body("content").trim().notEmpty().withMessage(`Post content ${emptyErr}`),
 ];
 
-const commentValidation = [
+const commentValidation: ValidationChain[] = [
   body("content").trim().notEmpty().withMessage(`Comment ${emptyErr}`),
 ];
 
-const commentParamValidation = [
+const commentParamValidation: ValidationChain[] = [
   param("commentId")
     .isInt()
     .withMessage("Comment ID must be an integer!")
@@ -98,10 +98,16 @@ const userParamValidation: ValidationChain[] = [
     }),
 ];
 
+const postQueryValidation: ValidationChain[] = [
+  query("page").isInt().withMessage("User ID must be an integer"),
+  query("limit").isInt().withMessage("User ID must be an integer"),
+];
+
 export {
   registerValidation,
   loginValidation,
   postValidation,
+  postQueryValidation,
   commentValidation,
   commentParamValidation,
   postParamValidation,

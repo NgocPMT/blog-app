@@ -6,7 +6,7 @@ import { postParamValidation } from "../validation/validation.js";
 
 const postRouter = Router();
 
-postRouter.get("/", postController.handleGetAllPosts);
+postRouter.get("/", postController.handleGetPostsPagination);
 
 postRouter.post("/", postController.handleCreatePost);
 
