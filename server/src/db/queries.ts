@@ -24,6 +24,14 @@ const getAllPosts = async () => {
   return posts;
 };
 
+// For validate post model's unique fields
+const getPostByTitleAndUserId = async (title: string, userId: number) => {
+  const post = await prisma.post.findFirst({
+    where: { title: { equals: title, mode: "insensitive" }, userId },
+  });
+  return post ?? null;
+};
+
 const createPost = async (post: Post) => {
   const { title, content, userId } = post;
   const createdPost = await prisma.post.create({
@@ -74,6 +82,11 @@ const getUserById = async (id: number) => {
 
 const getUserByUsername = async (username: string) => {
   const user = await prisma.user.findUnique({ where: { username } });
+  return user ?? null;
+};
+
+const getUserByEmail = async (email: string) => {
+  const user = await prisma.user.findUnique({ where: { email } });
   return user ?? null;
 };
 
@@ -140,11 +153,13 @@ const deleteComment = async (id: number) => {
 export default {
   getAllPosts,
   getPostById,
+  getPostByTitleAndUserId,
   createPost,
   updatePost,
   deletePost,
   getUserById,
   getUserByUsername,
+  getUserByEmail,
   createUser,
   getCommentsByPostId,
   getCommentById,
