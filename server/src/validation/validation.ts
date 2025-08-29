@@ -1,4 +1,5 @@
-import { body } from "express-validator";
+import { body, param, type ValidationChain } from "express-validator";
+import db from "../db/queries.js";
 
 const emptyErr = "must not be empty!";
 
@@ -8,19 +9,19 @@ const registerValidation = [
     .notEmpty()
     .withMessage(`Username ${emptyErr}`)
     .isLength({ min: 3, max: 255 })
-    .withMessage("Username must be from 3 to 255 characters"),
+    .withMessage("Username must be from 3 to 255 characters!"),
   body("email")
     .trim()
     .notEmpty()
     .withMessage(`Email ${emptyErr}`)
     .isEmail()
-    .withMessage("You must enter a valid email (example@mail.com)"),
+    .withMessage("You must enter a valid email!"),
   body("password")
     .trim()
     .notEmpty()
     .withMessage(`Password ${emptyErr}`)
     .isLength({ min: 6, max: 255 })
-    .withMessage("Password must be from 6 to 255 characters"),
+    .withMessage("Password must be from 6 to 255 characters!"),
 ];
 
 const loginValidation = [
@@ -34,7 +35,7 @@ const postValidation = [
     .notEmpty()
     .withMessage(`Post title ${emptyErr}`)
     .isLength({ min: 2, max: 255 })
-    .withMessage("Post title must be from 2 to 255 characters"),
+    .withMessage("Post title must be from 2 to 255 characters!"),
   body("content").trim().notEmpty().withMessage(`Post content ${emptyErr}`),
 ];
 
@@ -42,9 +43,40 @@ const commentValidation = [
   body("content").trim().notEmpty().withMessage(`Comment ${emptyErr}`),
 ];
 
+const commentParamValidation = [
+  param("commentId")
+    .isInt()
+    .withMessage("Comment ID must be an integer!")
+    .custom(async (commentId: string) => {
+      const comment = await db.getCommentById(parseInt(commentId));
+      if (!comment) throw new Error("Comment doesn't exist");
+    }),
+];
+
+const postParamValidation: ValidationChain[] = [
+  param("postId")
+    .isInt()
+    .withMessage("Post ID must be an integer!")
+    .custom(async (postId: string) => {
+      const post = await db.getPostById(parseInt(postId));
+      if (!post) throw new Error("Post doesn't exist");
+    }),
+];
+
+export {
+  registerValidation,
+  loginValidation,
+  postValidation,
+  commentValidation,
+  commentParamValidation,
+  postParamValidation,
+};
+
 export default {
   registerValidation,
   loginValidation,
   postValidation,
   commentValidation,
+  commentParamValidation,
+  postParamValidation,
 };

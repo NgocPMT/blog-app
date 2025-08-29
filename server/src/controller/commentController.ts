@@ -1,9 +1,12 @@
 import type { Request, RequestHandler, Response } from "express";
 import passport from "passport";
 import db from "../db/queries.js";
-import validation from "../validation/validation.js";
+import {
+  commentParamValidation,
+  commentValidation,
+} from "../validation/validation.js";
 import validate from "../middlewares/validate.js";
-import validateAuth from "../middlewares/validateAuthorization.js";
+import { validateCommentAuthorization } from "../middlewares/validateAuthorization.js";
 
 const handleGetCommentsByPostId = async (req: Request, res: Response) => {
   const postId = req.params.postId;
@@ -14,7 +17,7 @@ const handleGetCommentsByPostId = async (req: Request, res: Response) => {
 
 const handleCreateComment: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
-  validate(validation.commentValidation),
+  ...validate(commentValidation),
   async (req: Request, res: Response) => {
     const { content } = req.body;
     const { postId } = req.params;
@@ -31,8 +34,9 @@ const handleCreateComment: RequestHandler[] = [
 
 const handleUpdateComment: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
-  validateAuth.validateCommentAuthorization,
-  validate(validation.commentValidation),
+  validateCommentAuthorization,
+  ...validate(commentParamValidation),
+  ...validate(commentValidation),
   async (req: Request, res: Response) => {
     const { content } = req.body;
     const { commentId } = req.params;
@@ -40,17 +44,18 @@ const handleUpdateComment: RequestHandler[] = [
       id: parseInt(commentId),
       content,
     });
-    res.status(201).json({ message: "Update successfully", comment });
+    res.json({ message: "Update successfully", comment });
   },
 ];
 
 const handleDeleteComment: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
-  validateAuth.validateCommentAuthorization,
+  validateCommentAuthorization,
+  ...validate(commentParamValidation),
   async (req: Request, res: Response) => {
     const { commentId } = req.params;
     const comment = await db.deleteComment(parseInt(commentId));
-    res.status(201).json({ message: "Delete successfully", comment });
+    res.json({ message: "Delete successfully", comment });
   },
 ];
 

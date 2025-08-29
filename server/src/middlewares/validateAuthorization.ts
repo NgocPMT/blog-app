@@ -31,4 +31,5 @@ const validateCommentAuthorization = async (
   next();
 };
 
+export { validatePostAuthorization, validateCommentAuthorization };
 export default { validatePostAuthorization, validateCommentAuthorization };

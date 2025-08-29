@@ -1,8 +1,11 @@
 import passport from "passport";
 import type { Request, RequestHandler, Response } from "express";
 import db from "../db/queries.js";
-import validation from "../validation/validation.js";
-import validateAuth from "../middlewares/validateAuthorization.js";
+import {
+  postValidation,
+  postParamValidation,
+} from "../validation/validation.js";
+import { validatePostAuthorization } from "../middlewares/validateAuthorization.js";
 import validate from "../middlewares/validate.js";
 
 const handleGetAllPosts = async (req: Request, res: Response) => {
@@ -10,16 +13,20 @@ const handleGetAllPosts = async (req: Request, res: Response) => {
   res.json(posts);
 };
 
-const handleGetPostById = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.postId);
-  const post = await db.getPostById(id);
-  res.json(post);
-};
+const handleGetPostById: RequestHandler[] = [
+  ...validate(postParamValidation),
+  async (req: Request, res: Response) => {
+    const id = parseInt(req.params.postId);
+    const post = await db.getPostById(id);
+    res.json(post);
+  },
+];
 
-const handleUpdatePost = [
+const handleUpdatePost: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
-  validateAuth.validatePostAuthorization,
-  validate(validation.postValidation),
+  validatePostAuthorization,
+  ...validate(postParamValidation),
+  ...validate(postValidation),
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.postId);
     const { title, content } = req.body;
@@ -28,9 +35,10 @@ const handleUpdatePost = [
   },
 ];
 
-const handleDeletePost = [
+const handleDeletePost: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
-  validateAuth.validatePostAuthorization,
+  validatePostAuthorization,
+  ...validate(postParamValidation),
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.postId);
 
@@ -39,9 +47,9 @@ const handleDeletePost = [
   },
 ];
 
-const handleCreatePost: RequestHandler[] = [
+const handleCreatePost = [
   passport.authenticate("jwt", { session: false }),
-  validate(validation.postValidation),
+  ...validate(postValidation),
   async (req: Request, res: Response) => {
     const { title, content } = req.body;
     const userId = (req.user as { id: number }).id;
