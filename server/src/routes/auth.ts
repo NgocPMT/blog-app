@@ -8,12 +8,4 @@ auth.post("/register", authController.handleRegister);
 
 auth.post("/login", authController.handleLogin);
 
-auth.get(
-  "/session",
-  passport.authenticate("jwt", { session: false }),
-  (req: Request, res: Response) => {
-    res.json({ message: "Login successfully", user: req.user });
-  }
-);
-
 export default auth;
