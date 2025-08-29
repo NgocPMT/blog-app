@@ -11,6 +11,7 @@ const registerValidation = [
     .withMessage(`Username ${emptyErr}`)
     .isLength({ min: 3, max: 255 })
     .withMessage("Username must be from 3 to 255 characters!")
+    .bail()
     .custom(async (username) => {
       const user = await db.getUserByUsername(username);
       if (user) throw new Error("Username already exists");
@@ -21,6 +22,7 @@ const registerValidation = [
     .withMessage(`Email ${emptyErr}`)
     .isEmail()
     .withMessage("You must enter a valid email!")
+    .bail()
     .custom(async (email) => {
       const user = await db.getUserByEmail(email);
       if (user) throw new Error("Email already exists");
@@ -67,6 +69,7 @@ const commentParamValidation = [
   param("commentId")
     .isInt()
     .withMessage("Comment ID must be an integer!")
+    .bail()
     .custom(async (commentId: string) => {
       const comment = await db.getCommentById(parseInt(commentId));
       if (!comment) throw new Error("Comment doesn't exist");
@@ -77,9 +80,21 @@ const postParamValidation: ValidationChain[] = [
   param("postId")
     .isInt()
     .withMessage("Post ID must be an integer!")
+    .bail()
     .custom(async (postId: string) => {
       const post = await db.getPostById(parseInt(postId));
       if (!post) throw new Error("Post doesn't exist");
+    }),
+];
+
+const userParamValidation: ValidationChain[] = [
+  param("userId")
+    .isInt()
+    .withMessage("User ID must be an integer")
+    .bail()
+    .custom(async (userId: string) => {
+      const user = await db.getUserById(parseInt(userId));
+      if (!user) throw new Error("User doesn't exist");
     }),
 ];
 
@@ -90,6 +105,7 @@ export {
   commentValidation,
   commentParamValidation,
   postParamValidation,
+  userParamValidation,
 };
 
 export default {

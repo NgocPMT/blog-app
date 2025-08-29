@@ -90,6 +90,14 @@ const getUserByEmail = async (email: string) => {
   return user ?? null;
 };
 
+const getUserInformation = async (id: number) => {
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: { username: true, email: true },
+  });
+  return user ?? null;
+};
+
 const createUser = async (user: User) => {
   const { username, email, password } = user;
   await prisma.user.create({
@@ -158,6 +166,7 @@ export default {
   updatePost,
   deletePost,
   getUserById,
+  getUserInformation,
   getUserByUsername,
   getUserByEmail,
   createUser,

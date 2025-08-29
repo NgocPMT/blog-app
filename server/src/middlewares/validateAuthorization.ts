@@ -1,6 +1,18 @@
 import type { NextFunction, Request, Response } from "express";
 import db from "../db/queries.js";
 
+const validateAuthorization = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = parseInt(req.params.userId);
+  const currentUserId = (req.user as { id: number }).id;
+  if (userId !== currentUserId)
+    return res.status(403).json({ error: "Forbidden" });
+  next();
+};
+
 const validatePostAuthorization = async (
   req: Request,
   res: Response,
@@ -31,5 +43,13 @@ const validateCommentAuthorization = async (
   next();
 };
 
-export { validatePostAuthorization, validateCommentAuthorization };
-export default { validatePostAuthorization, validateCommentAuthorization };
+export {
+  validatePostAuthorization,
+  validateCommentAuthorization,
+  validateAuthorization,
+};
+export default {
+  validatePostAuthorization,
+  validateCommentAuthorization,
+  validateAuthorization,
+};
