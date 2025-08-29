@@ -1,5 +1,4 @@
-import passport from "passport";
-import { Router, type Request, type Response } from "express";
+import { Router } from "express";
 import authController from "../controller/authController.js";
 
 const auth = Router();
@@ -7,13 +6,5 @@ const auth = Router();
 auth.post("/register", authController.handleRegister);
 
 auth.post("/login", authController.handleLogin);
-
-auth.get(
-  "/session",
-  passport.authenticate("jwt", { session: false }),
-  (req: Request, res: Response) => {
-    res.json({ message: "Login successfully", user: req.user });
-  }
-);
 
 export default auth;
