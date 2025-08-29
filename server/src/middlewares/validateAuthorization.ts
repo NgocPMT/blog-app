@@ -20,7 +20,6 @@ const validatePostAuthorization = async (
 ) => {
   const id = parseInt(req.params.postId);
   const post = await db.getPostById(id);
-
   if (!post) return res.status(404).json({ error: "Post not found" });
   const userId = (req.user as { id: number }).id;
   if (post.userId !== userId)
@@ -33,12 +32,14 @@ const validateCommentAuthorization = async (
   res: Response,
   next: NextFunction
 ) => {
-  const id = parseInt(req.params.commentId);
-  const comment = await db.getCommentById(id);
-
+  const { postId, commentId } = req.params;
+  const comment = await db.getCommentById(parseInt(commentId));
   if (!comment) return res.status(404).json({ error: "Comment not found" });
+  const post = await db.getPostById(parseInt(postId));
+  if (!post) return res.status(404).json({ error: "Post not found" });
+
   const userId = (req.user as { id: number }).id;
-  if (comment.userId !== userId)
+  if (comment.userId !== userId && post.userId !== userId)
     return res.status(403).json({ error: "Forbidden" });
   next();
 };
