@@ -1,4 +1,3 @@
-import { query } from "express-validator";
 import passport from "passport";
 import type { Request, RequestHandler, Response } from "express";
 import db from "../db/queries.js";
