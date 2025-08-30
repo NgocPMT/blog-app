@@ -1,5 +1,4 @@
 import { body, param, query, type ValidationChain } from "express-validator";
-import type { Request } from "express";
 import db from "../db/queries.js";
 
 const emptyErr = "must not be empty!";
