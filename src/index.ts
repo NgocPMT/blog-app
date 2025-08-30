@@ -2,7 +2,7 @@ import express from "express";
 import type { Express, NextFunction, Request, Response } from "express";
 import "dotenv/config";
 import postRouter from "./routes/postRouter.js";
-import "../config/passport.js";
+import "./config/passport.js";
 import auth from "./routes/auth.js";
 import userRouter from "./routes/userRouter.js";
 import routeErrorHandling from "./middlewares/routeErrorHandling.js";

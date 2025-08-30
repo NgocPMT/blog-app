@@ -5,7 +5,7 @@ import {
   Strategy as JWTStrategy,
   type StrategyOptions,
 } from "passport-jwt";
-import db from "../src/db/queries.js";
+import db from "../db/queries.js";
 import bcrypt from "bcryptjs";
 
 interface JWTPayload {
