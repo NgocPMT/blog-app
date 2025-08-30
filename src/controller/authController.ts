@@ -57,7 +57,7 @@ const handleLogin: RequestHandler[] = [
           const token = jwt.sign(
             { id: user.id },
             process.env.JWT_SECRET_KEY as string,
-            { expiresIn: "1h" }
+            { expiresIn: "8h" }
           );
           return res.json({ user, token });
         });
