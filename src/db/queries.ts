@@ -19,12 +19,17 @@ interface Comment {
 
 const prisma = new PrismaClient();
 
-const getPublishedPosts = async (page: number, limit: number) => {
+const getPublishedPosts = async (
+  page: number,
+  limit: number,
+  searchQuery: string | null
+) => {
   const posts = await prisma.post.findMany({
     skip: (page - 1) * limit,
     take: limit,
     where: {
       published: true,
+      title: searchQuery ? { contains: searchQuery, mode: "insensitive" } : {},
     },
   });
   return posts;

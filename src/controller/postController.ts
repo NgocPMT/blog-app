@@ -1,3 +1,4 @@
+import { query } from "express-validator";
 import passport from "passport";
 import type { Request, RequestHandler, Response } from "express";
 import db from "../db/queries.js";
@@ -21,8 +22,17 @@ const handleGetPostById: RequestHandler[] = [
 const handleGetPostsPagination: RequestHandler[] = [
   ...validate(postQueryValidation),
   async (req: Request, res: Response) => {
-    const { page, limit } = req.query as { page: string; limit: string };
-    const posts = await db.getPublishedPosts(parseInt(page), parseInt(limit));
+    const { page, limit, search } = req.query as {
+      page: string;
+      limit: string;
+      search: string;
+    };
+    const isEmptySearch = search ? search.trim() === "" : true;
+    const posts = await db.getPublishedPosts(
+      parseInt(page),
+      parseInt(limit),
+      isEmptySearch ? null : search
+    );
     res.json(posts);
   },
 ];

@@ -100,6 +100,9 @@ const userParamValidation: ValidationChain[] = [
 const postQueryValidation: ValidationChain[] = [
   query("page").isInt().withMessage("Page index must be an integer"),
   query("limit").isInt().withMessage("Pagination must be an integer"),
+  query("search")
+    .isLength({ max: 255 })
+    .withMessage("Search query must be under 255 characters"),
 ];
 
 export {
