@@ -7,10 +7,12 @@ import auth from "./routes/auth.js";
 import userRouter from "./routes/userRouter.js";
 import routeErrorHandling from "./middlewares/routeErrorHandling.js";
 import internalErrorHandling from "./middlewares/internalErrorHandling.js";
+import cors from "cors";
 
 const app: Express = express();
 
 app.use(express.json());
+app.use(cors());
 
 app.use(auth);
 app.use("/posts", postRouter);
