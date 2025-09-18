@@ -18,11 +18,11 @@ model User {
   accounts        Account[]
   followers       User[]         @relation("UserFollows")
   followings      User[]         @relation("UserFollows")
-  role            String
+  role            String?
   PostReaction    PostReaction[]
-  publication     Publication    @relation(fields: [publicationId], references: [id])
-  publicationId   Int
-  publicationRole String
+  publication     Publication?   @relation(fields: [publicationId], references: [id])
+  publicationId   Int?
+  publicationRole String?
 }
 
 model Publication {
@@ -59,8 +59,8 @@ model Post {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int
   comments      Comment[]
-  readingList   ReadingList    @relation(fields: [readingListId], references: [id], onDelete: Cascade)
-  readingListId Int
+  readingList   ReadingList?   @relation(fields: [readingListId], references: [id], onDelete: Cascade)
+  readingListId Int?
   topics        Topic[]
   PostReaction  PostReaction[]
   publication   Publication?   @relation(fields: [publicationId], references: [id])

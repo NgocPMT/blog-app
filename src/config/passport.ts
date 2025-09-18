@@ -24,6 +24,10 @@ passport.use(
     try {
       const user = await db.getUserByUsername(username);
       if (!user) return done(null, false, { message: "Username not found." });
+      if (!user.password)
+        return done(null, false, {
+          message: "This user doesn't use username-password login",
+        });
 
       const match = await bcrypt.compare(password, user.password);
 
