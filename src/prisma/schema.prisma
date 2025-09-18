@@ -8,26 +8,82 @@ datasource db {
 }
 
 model User {
-  id       Int       @id @default(autoincrement())
-  username String    @unique
-  email    String    @unique
-  password String
-  posts    Post[]
-  comments Comment[]
+  id              Int            @id @default(autoincrement())
+  username        String?        @unique
+  email           String         @unique
+  password        String?
+  posts           Post[]
+  comments        Comment[]
+  ReadingList     ReadingList?
+  accounts        Account[]
+  followers       User[]         @relation("UserFollows")
+  followings      User[]         @relation("UserFollows")
+  role            String
+  PostReaction    PostReaction[]
+  publication     Publication    @relation(fields: [publicationId], references: [id])
+  publicationId   Int
+  publicationRole String
+}
+
+model Publication {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+  posts Post[]
+}
+
+model Account {
+  id             Int    @id @default(autoincrement())
+  provider       String
+  providerUserId String
+  userId         Int
+  user           User   @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerUserId])
+}
+
+model ReadingList {
+  id     Int    @id @default(autoincrement())
+  posts  Post[]
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int    @unique
 }
 
 model Post {
-  id        Int       @id @default(autoincrement())
-  title     String
-  content   String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  published Boolean   @default(false)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
-  comments  Comment[]
+  id            Int            @id @default(autoincrement())
+  title         String
+  content       String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  published     Boolean        @default(false)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int
+  comments      Comment[]
+  readingList   ReadingList    @relation(fields: [readingListId], references: [id], onDelete: Cascade)
+  readingListId Int
+  topics        Topic[]
+  PostReaction  PostReaction[]
+  publication   Publication?   @relation(fields: [publicationId], references: [id])
+  publicationId Int?
 
   @@unique([title, userId])
+}
+
+model PostReaction {
+  userId       Int
+  postId       Int
+  reactionType String
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+}
+
+model Topic {
+  id    Int    @id @default(autoincrement())
+  name  String
+  posts Post[]
 }
 
 model Comment {
