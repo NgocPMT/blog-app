@@ -8,28 +8,101 @@ datasource db {
 }
 
 model User {
-  id              Int            @id @default(autoincrement())
-  username        String?        @unique
-  email           String         @unique
-  password        String?
-  posts           Post[]
-  comments        Comment[]
-  ReadingList     ReadingList?
-  accounts        Account[]
-  followers       User[]         @relation("UserFollows")
-  followings      User[]         @relation("UserFollows")
-  role            String?
-  PostReaction    PostReaction[]
-  publication     Publication?   @relation(fields: [publicationId], references: [id])
-  publicationId   Int?
-  publicationRole String?
+  id                Int                 @id @default(autoincrement())
+  username          String?             @unique
+  email             String              @unique
+  password          String?
+  posts             Post[]
+  comments          Comment[]
+  ReadingList       ReadingList[]
+  accounts          Account[]
+  followers         User[]              @relation("UserFollows")
+  followings        User[]              @relation("UserFollows")
+  role              String?
+  PostReaction      PostReaction[]
+  PublicationToUser PublicationToUser[]
+  createdAt         DateTime            @default(now())
+  isActive          Boolean             @default(true)
+  CommentReaction   CommentReaction[]
+  Profile           Profile?
+  PostView          PostView[]
+  PublicationFollow PublicationFollow[]
+  Notification      Notification[]
+  followedBy        UserFollows[]       @relation("followedBy")
+  following         UserFollows[]       @relation("following")
+}
+
+model UserFollows {
+  followedBy   User @relation("followedBy", fields: [followedById], references: [id])
+  followedById Int
+  following    User @relation("following", fields: [followingId], references: [id])
+  followingId  Int
+
+  @@id([followingId, followedById])
+}
+
+model Profile {
+  id        Int     @id @default(autoincrement())
+  name      String
+  avatarUrl String?
+  bio       String? @db.VarChar(160)
+  userId    Int     @unique
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Publication {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  users User[]
-  posts Post[]
+  id                Int                 @id @default(autoincrement())
+  name              String              @unique
+  description       String?
+  logoUrl           String?
+  createdAt         DateTime            @default(now())
+  isActive          Boolean             @default(true)
+  posts             Post[]
+  PublicationToUser PublicationToUser[]
+  PublicationFollow PublicationFollow[]
+}
+
+model PublicationFollow {
+  userId        Int
+  publicationId Int
+  followedAt    DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, publicationId])
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  relatedId Int? // For linking to posts, publications, etc.
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+}
+
+enum NotificationType {
+  NEW_POST
+  NEW_COMMENT
+  PUBLICATION_INVITE
+  POST_REACTION
+}
+
+model PublicationToUser {
+  userId          Int
+  publicationId   Int
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  publication     Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  publicationRole String
+
+  @@unique([userId, publicationId])
 }
 
 model Account {
@@ -37,62 +110,131 @@ model Account {
   provider       String
   providerUserId String
   userId         Int
-  user           User   @relation(fields: [userId], references: [id])
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerUserId])
 }
 
 model ReadingList {
-  id     Int    @id @default(autoincrement())
-  posts  Post[]
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int    @unique
+  id     Int @id @default(autoincrement())
+  postId Int
+  userId Int
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
 }
 
 model Post {
   id            Int            @id @default(autoincrement())
   title         String
-  content       String
+  content       Json
+  slug          String         @unique
+  coverImageUrl String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  published     Boolean        @default(false)
+  status        PostStatus     @default(DRAFT)
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int
   comments      Comment[]
-  readingList   ReadingList?   @relation(fields: [readingListId], references: [id], onDelete: Cascade)
-  readingListId Int?
-  topics        Topic[]
   PostReaction  PostReaction[]
   publication   Publication?   @relation(fields: [publicationId], references: [id])
   publicationId Int?
+  ReadingList   ReadingList[]
+  PostView      PostView[]
+  PostTopic     PostTopic[]
 
   @@unique([title, userId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([publicationId])
+}
+
+model PostTopic {
+  postId  Int
+  topicId Int
+
+  post  Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, topicId])
+}
+
+model Topic {
+  id        Int         @id @default(autoincrement())
+  name      String
+  PostTopic PostTopic[]
+}
+
+model PostView {
+  postId   Int
+  userId   Int
+  viewedAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+  @@index([viewedAt])
+}
+
+enum PostStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
 }
 
 model PostReaction {
-  userId       Int
-  postId       Int
-  reactionType String
+  userId         Int
+  postId         Int
+  reactionTypeId Int
 
-  user User @relation(fields: [userId], references: [id])
-  post Post @relation(fields: [postId], references: [id])
+  reactionType ReactionType @relation(fields: [reactionTypeId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post         Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
 }
 
-model Topic {
-  id    Int    @id @default(autoincrement())
-  name  String
-  posts Post[]
+model Comment {
+  id              Int               @id @default(autoincrement())
+  content         String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  isEdited        Boolean           @default(false)
+  post            Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId          Int
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentId        Int?
+  parent          Comment?          @relation("CommentReplies", fields: [parentId], references: [id])
+  replies         Comment[]         @relation("CommentReplies")
+  userId          Int
+  CommentReaction CommentReaction[]
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
 }
 
-model Comment {
-  id        Int      @id @default(autoincrement())
-  content   String
-  createdAt DateTime @default(now())
-  isEdited  Boolean  @default(false)
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+model CommentReaction {
+  commentId      Int
+  reactionTypeId Int
+  userId         Int
+
+  comment      Comment      @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reactionType ReactionType @relation(fields: [reactionTypeId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+}
+
+model ReactionType {
+  id               Int               @id @default(autoincrement())
+  name             String
+  reactionImageUrl String
+  PostReaction     PostReaction[]
+  CommentReaction  CommentReaction[]
 }
