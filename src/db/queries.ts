@@ -65,6 +65,17 @@ const updatePostPublished = async (id: number, status: PostStatus) => {
   return post;
 };
 
+const doesSlugExist = async (slug: string) => {
+  const dbSlug = await prisma.post.findUnique({
+    where: { slug },
+  });
+
+  if (dbSlug) {
+    return true;
+  }
+  return false;
+};
+
 const updatePost = async ({
   id,
   title,
@@ -192,6 +203,7 @@ export default {
   updatePost,
   deletePost,
   updatePostPublished,
+  doesSlugExist,
   getUserById,
   getUserInformation,
   getUserByUsername,

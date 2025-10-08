@@ -8,6 +8,7 @@ import {
 } from "../validation/validation.js";
 import { validatePostAuthorization } from "../middlewares/validateAuthorization.js";
 import validate from "../middlewares/validate.js";
+import slugify from "slug";
 
 const handleGetPostById: RequestHandler[] = [
   ...validate(postParamValidation),
@@ -66,8 +67,17 @@ const handleCreatePost = [
   ...validate(postValidation),
   async (req: Request, res: Response) => {
     const { title, content } = req.body;
+
+    let slug = slugify(title, { lower: true });
+
+    const isSlugUnique = !db.doesSlugExist(slug);
+
+    if (!isSlugUnique) {
+      slug = `${slug}-${Date.now()}`;
+    }
+
     const userId = (req.user as { id: number }).id;
-    await db.createPost({ title, content, userId });
+    await db.createPost({ title, content, slug, userId });
     res.status(201).json({ message: "Create post successfully" });
   },
 ];
@@ -78,7 +88,7 @@ const handlePublishPost = [
   ...validate(postParamValidation),
   async (req: Request, res: Response) => {
     const postId = parseInt(req.params.postId);
-    const post = await db.updatePostPublished(postId, true);
+    const post = await db.updatePostPublished(postId, "PUBLISHED");
     res.status(201).json({ message: "Publish successfully", post });
   },
 ];
@@ -89,7 +99,7 @@ const handleUnpublishPost = [
   ...validate(postParamValidation),
   async (req: Request, res: Response) => {
     const postId = parseInt(req.params.postId);
-    const post = await db.updatePostPublished(postId, false);
+    const post = await db.updatePostPublished(postId, "DRAFT");
     res.status(201).json({ message: "Unpublish successfully", post });
   },
 ];
