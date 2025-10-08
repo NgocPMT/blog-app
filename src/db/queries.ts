@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, PostStatus } from "@prisma/client";
 interface User {
   username: string;
   email: string;
@@ -7,6 +7,7 @@ interface User {
 
 interface Post {
   title: string;
+  slug: string;
   content: string;
   userId: number;
 }
@@ -28,7 +29,7 @@ const getPublishedPosts = async (
     skip: (page - 1) * limit,
     take: limit,
     where: {
-      published: true,
+      status: "PUBLISHED",
       title: searchQuery ? { contains: searchQuery, mode: "insensitive" } : {},
     },
   });
@@ -44,10 +45,11 @@ const getPostByTitleAndUserId = async (title: string, userId: number) => {
 };
 
 const createPost = async (post: Post) => {
-  const { title, content, userId } = post;
+  const { title, slug, content, userId } = post;
   const createdPost = await prisma.post.create({
     data: {
       title,
+      slug,
       content,
       user: { connect: { id: userId } },
     },
@@ -55,8 +57,11 @@ const createPost = async (post: Post) => {
   return createdPost;
 };
 
-const updatePostPublished = async (id: number, published: boolean) => {
-  const post = await prisma.post.update({ where: { id }, data: { published } });
+const updatePostPublished = async (id: number, status: PostStatus) => {
+  const post = await prisma.post.update({
+    where: { id },
+    data: { status },
+  });
   return post;
 };
 
