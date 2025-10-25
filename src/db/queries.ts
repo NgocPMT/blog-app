@@ -125,7 +125,16 @@ const getUserByEmail = async (email: string) => {
 const getUserInformation = async (id: number) => {
   const user = await prisma.user.findUnique({
     where: { id },
-    select: { username: true, email: true },
+    omit: {
+      password: true,
+    },
+  });
+  return user ?? null;
+};
+
+const getUserProfile = async (id: number) => {
+  const user = await prisma.profile.findUnique({
+    where: { userId: id },
   });
   return user ?? null;
 };
@@ -206,6 +215,7 @@ export default {
   doesSlugExist,
   getUserById,
   getUserInformation,
+  getUserProfile,
   getUserByUsername,
   getUserByEmail,
   getUserPosts,

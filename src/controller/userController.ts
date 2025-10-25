@@ -5,11 +5,24 @@ import { userParamValidation } from "../validation/validation.js";
 import validate from "../middlewares/validate.js";
 import { validateAuthorization } from "../middlewares/validateAuthorization.js";
 
+const handleGetUserInformation: RequestHandler[] = [
+  passport.authenticate("jwt", { session: false }),
+  validateAuthorization,
+  ...validate(userParamValidation),
+  async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.userId);
+    const user = await db.getUserInformation(userId);
+    return res.json(user);
+  },
+];
+
 const handleGetUserProfile: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
+  validateAuthorization,
+  ...validate(userParamValidation),
   async (req: Request, res: Response) => {
-    const userId = (req.user as { id: number }).id;
-    const user = await db.getUserInformation(userId);
+    const userId = parseInt(req.params.userId);
+    const user = await db.getUserProfile(userId);
     return res.json(user);
   },
 ];
@@ -25,4 +38,8 @@ const handleGetUserPosts: RequestHandler[] = [
   },
 ];
 
-export default { handleGetUserProfile, handleGetUserPosts };
+export default {
+  handleGetUserInformation,
+  handleGetUserProfile,
+  handleGetUserPosts,
+};
