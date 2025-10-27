@@ -14,10 +14,6 @@ postRouter.get("/:postId", postController.handleGetPostById);
 
 postRouter.put("/:postId", postController.handleUpdatePost);
 
-// postRouter.put("/:postId/publish", postController.handlePublishPost);
-
-// postRouter.put("/:postId/unpublish", postController.handleUnpublishPost);
-
 postRouter.delete("/:postId", postController.handleDeletePost);
 
 postRouter.use(

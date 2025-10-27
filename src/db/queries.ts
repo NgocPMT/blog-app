@@ -10,6 +10,8 @@ interface Post {
   slug: string;
   content: string;
   userId: number;
+  status?: PostStatus;
+  coverImageUrl?: string;
 }
 
 interface Comment {
@@ -45,24 +47,19 @@ const getPostByTitleAndUserId = async (title: string, userId: number) => {
 };
 
 const createPost = async (post: Post) => {
-  const { title, slug, content, userId } = post;
+  const { title, slug, content, userId, status, coverImageUrl } = post;
   const createdPost = await prisma.post.create({
     data: {
       title,
       slug,
       content,
       user: { connect: { id: userId } },
+      status,
+      coverImageUrl,
     },
   });
-  return createdPost;
-};
 
-const updatePostPublished = async (id: number, status: PostStatus) => {
-  const post = await prisma.post.update({
-    where: { id },
-    data: { status },
-  });
-  return post;
+  return createdPost;
 };
 
 const doesSlugExist = async (slug: string) => {
@@ -211,7 +208,6 @@ export default {
   createPost,
   updatePost,
   deletePost,
-  updatePostPublished,
   doesSlugExist,
   getUserById,
   getUserInformation,

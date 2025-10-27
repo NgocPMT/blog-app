@@ -66,7 +66,7 @@ const handleCreatePost = [
   passport.authenticate("jwt", { session: false }),
   ...validate(postValidation),
   async (req: Request, res: Response) => {
-    const { title, content } = req.body;
+    const { title, content, coverImageUrl } = req.body;
 
     let slug = slugify(title, { lower: true });
 
@@ -77,30 +77,15 @@ const handleCreatePost = [
     }
 
     const userId = (req.user as { id: number }).id;
-    await db.createPost({ title, content, slug, userId });
+    await db.createPost({
+      title,
+      content,
+      slug,
+      status: "PUBLISHED",
+      userId,
+      coverImageUrl,
+    });
     res.status(201).json({ message: "Create post successfully" });
-  },
-];
-
-const handlePublishPost = [
-  passport.authenticate("jwt", { session: false }),
-  validatePostAuthorization,
-  ...validate(postParamValidation),
-  async (req: Request, res: Response) => {
-    const postId = parseInt(req.params.postId);
-    const post = await db.updatePostPublished(postId, "PUBLISHED");
-    res.status(201).json({ message: "Publish successfully", post });
-  },
-];
-
-const handleUnpublishPost = [
-  passport.authenticate("jwt", { session: false }),
-  validatePostAuthorization,
-  ...validate(postParamValidation),
-  async (req: Request, res: Response) => {
-    const postId = parseInt(req.params.postId);
-    const post = await db.updatePostPublished(postId, "DRAFT");
-    res.status(201).json({ message: "Unpublish successfully", post });
   },
 ];
 
@@ -109,7 +94,5 @@ export default {
   handleUpdatePost,
   handleDeletePost,
   handleCreatePost,
-  handlePublishPost,
-  handleUnpublishPost,
   handleGetPostsPagination,
 };
