@@ -68,6 +68,8 @@ const handleCreatePost = [
   async (req: Request, res: Response) => {
     const { title, content, coverImageUrl } = req.body;
 
+    const parsedContent = JSON.parse(content);
+
     let slug = slugify(title, { lower: true });
 
     const isSlugUnique = !db.doesSlugExist(slug);
@@ -79,7 +81,7 @@ const handleCreatePost = [
     const userId = (req.user as { id: number }).id;
     await db.createPost({
       title,
-      content,
+      content: parsedContent,
       slug,
       status: "PUBLISHED",
       userId,
