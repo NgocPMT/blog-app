@@ -34,14 +34,17 @@ const getPublishedPosts = async (
       status: "PUBLISHED",
       title: searchQuery ? { contains: searchQuery, mode: "insensitive" } : {},
     },
+    include: {
+      user: true,
+    },
   });
   return posts;
 };
 
-// For validate post model's unique fields
 const getPostByTitleAndUserId = async (title: string, userId: number) => {
   const post = await prisma.post.findFirst({
     where: { title: { equals: title, mode: "insensitive" }, userId },
+    include: { user: true },
   });
   return post ?? null;
 };
@@ -100,7 +103,10 @@ const deletePost = async (id: number) => {
 };
 
 const getPostById = async (id: number) => {
-  const post = await prisma.post.findUnique({ where: { id } });
+  const post = await prisma.post.findUnique({
+    where: { id },
+    include: { user: true },
+  });
   return post ?? null;
 };
 
