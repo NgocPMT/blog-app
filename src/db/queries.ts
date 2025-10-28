@@ -36,6 +36,11 @@ const getPublishedPosts = async (
     },
     include: {
       user: true,
+      PostReaction: true,
+      PostTopic: true,
+      PostView: true,
+      comments: true,
+      publication: true,
     },
   });
   return posts;
@@ -44,7 +49,14 @@ const getPublishedPosts = async (
 const getPostByTitleAndUserId = async (title: string, userId: number) => {
   const post = await prisma.post.findFirst({
     where: { title: { equals: title, mode: "insensitive" }, userId },
-    include: { user: true },
+    include: {
+      user: true,
+      PostReaction: true,
+      PostTopic: true,
+      PostView: true,
+      comments: true,
+      publication: true,
+    },
   });
   return post ?? null;
 };
@@ -105,7 +117,14 @@ const deletePost = async (id: number) => {
 const getPostById = async (id: number) => {
   const post = await prisma.post.findUnique({
     where: { id },
-    include: { user: true },
+    include: {
+      user: true,
+      PostReaction: true,
+      PostTopic: true,
+      PostView: true,
+      comments: true,
+      publication: true,
+    },
   });
   return post ?? null;
 };
@@ -143,7 +162,17 @@ const getUserProfile = async (id: number) => {
 };
 
 const getUserPosts = async (userId: number) => {
-  const posts = await prisma.post.findMany({ where: { userId } });
+  const posts = await prisma.post.findMany({
+    where: { userId },
+    include: {
+      user: true,
+      PostReaction: true,
+      PostTopic: true,
+      PostView: true,
+      comments: true,
+      publication: true,
+    },
+  });
   return posts;
 };
 
