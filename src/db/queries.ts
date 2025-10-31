@@ -161,6 +161,72 @@ const getUserProfile = async (id: number) => {
   return user ?? null;
 };
 
+const getUserNotifications = async (id: number) => {
+  const notifications = await prisma.notification.findMany({
+    where: { userId: id },
+  });
+  return notifications;
+};
+
+const getUserFollowers = async (id: number) => {
+  const followers = await prisma.userFollows.findMany({
+    where: { followingId: id },
+    include: {
+      followedBy: {
+        select: {
+          id: true,
+          Profile: { select: { name: true, avatarUrl: true } },
+        },
+      },
+    },
+  });
+  return followers;
+};
+
+const getUserFollowings = async (id: number) => {
+  const followings = await prisma.userFollows.findMany({
+    where: { followedById: id },
+    include: {
+      following: {
+        select: {
+          id: true,
+          Profile: { select: { name: true, avatarUrl: true } },
+        },
+      },
+    },
+  });
+  return followings;
+};
+
+const getUserStatistics = async (id: number) => {
+  const follows = await prisma.userFollows.findMany({
+    where: { followingId: id },
+    select: { followedAt: true },
+  });
+  const posts = await prisma.post.findMany({
+    where: { userId: id },
+    select: {
+      title: true,
+      slug: true,
+      createdAt: true,
+      PostView: { select: { viewedAt: true } },
+      PostReaction: { select: { reactedAt: true } },
+    },
+  });
+
+  return { follows, posts };
+};
+
+const getUserSavedPosts = async (id: number) => {
+  const savedPosts = await prisma.readingList.findMany({
+    where: { userId: id },
+    include: {
+      post: { include: { PostReaction: true, comments: true } },
+    },
+  });
+  return savedPosts;
+};
+
 const getUserPosts = async (userId: number) => {
   const posts = await prisma.post.findMany({
     where: { userId },
@@ -183,6 +249,13 @@ const createUser = async (user: User) => {
       username,
       email,
       password,
+      Profile: {
+        create: {
+          name: username,
+          bio: "",
+          avatarUrl: null,
+        },
+      },
     },
   });
 };
@@ -250,6 +323,11 @@ export default {
   getUserByUsername,
   getUserByEmail,
   getUserPosts,
+  getUserNotifications,
+  getUserFollowers,
+  getUserFollowings,
+  getUserStatistics,
+  getUserSavedPosts,
   createUser,
   getCommentsByPostId,
   getCommentById,
