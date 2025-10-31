@@ -1,6 +1,8 @@
 import passport from "passport";
 import db from "../db/queries.js";
 import type { Request, Response } from "express";
+import { profileValidation } from "../validation/validation.js";
+import validate from "../middlewares/validate.js";
 
 const handleGetSelfProfile = [
   passport.authenticate("jwt", { session: false }),
@@ -91,6 +93,33 @@ const handleGetSelfPosts = [
   },
 ];
 
+const handleUpdateSelfProfile = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(profileValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user) return res.status(403);
+
+    const userId = (req.user as { id: number }).id;
+    const { name, avatarUrl, bio } = req.body as {
+      name: string;
+      avatarUrl: string;
+      bio: string;
+    };
+
+    const updatedProfile = await db.updateProfile({
+      userId,
+      name,
+      avatarUrl,
+      bio,
+    });
+
+    return res.json({
+      message: "Updated successfully",
+      profile: updatedProfile,
+    });
+  },
+];
+
 export default {
   handleGetSelfInformation,
   handleGetSelfNotifications,
@@ -100,4 +129,5 @@ export default {
   handleGetSelfFollowings,
   handleGetSelfSavedPosts,
   handleGetSelfPosts,
+  handleUpdateSelfProfile,
 };

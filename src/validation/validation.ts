@@ -60,6 +60,20 @@ const postValidation: ValidationChain[] = [
   body("content").trim().notEmpty().withMessage(`Post content ${emptyErr}`),
 ];
 
+const profileValidation: ValidationChain[] = [
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage(`Name ${emptyErr}`)
+    .bail()
+    .isLength({ min: 1, max: 50 })
+    .withMessage("Name must be from 1 to 50 characters!"),
+  body("bio")
+    .trim()
+    .isLength({ max: 160 })
+    .withMessage("Name must be under 160 characters!"),
+];
+
 const commentValidation: ValidationChain[] = [
   body("content").trim().notEmpty().withMessage(`Comment ${emptyErr}`),
 ];
@@ -114,6 +128,7 @@ export {
   commentParamValidation,
   postParamValidation,
   userParamValidation,
+  profileValidation,
 };
 
 export default {
@@ -123,4 +138,5 @@ export default {
   commentValidation,
   commentParamValidation,
   postParamValidation,
+  profileValidation,
 };

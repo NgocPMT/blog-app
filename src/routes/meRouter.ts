@@ -5,6 +5,8 @@ const meRouter = Router();
 
 meRouter.get("/profile", meController.handleGetSelfProfile);
 
+meRouter.post("/profile", meController.handleUpdateSelfProfile);
+
 meRouter.get("/notifications", meController.handleGetSelfNotifications);
 
 meRouter.get("/statistics", meController.handleGetSelfStatistics);

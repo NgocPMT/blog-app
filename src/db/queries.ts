@@ -20,6 +20,13 @@ interface Comment {
   userId: number;
 }
 
+interface Profile {
+  userId: number;
+  name: string;
+  avatarUrl: string;
+  bio: string;
+}
+
 const prisma = new PrismaClient();
 
 const getPublishedPosts = async (
@@ -159,6 +166,23 @@ const getUserProfile = async (id: number) => {
     where: { userId: id },
   });
   return user ?? null;
+};
+
+const updateProfile = async (profile: Profile) => {
+  const { userId, name, avatarUrl, bio } = profile;
+  const updatedProfile = await prisma.profile.update({
+    where: { userId },
+    data: {
+      name,
+      avatarUrl,
+      bio,
+    },
+    omit: {
+      id: true,
+      userId: true,
+    },
+  });
+  return updatedProfile;
 };
 
 const getUserNotifications = async (id: number) => {
@@ -320,6 +344,7 @@ export default {
   getUserById,
   getUserInformation,
   getUserProfile,
+  updateProfile,
   getUserByUsername,
   getUserByEmail,
   getUserPosts,
