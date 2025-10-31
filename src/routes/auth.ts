@@ -7,4 +7,6 @@ auth.post("/register", authController.handleRegister);
 
 auth.post("/login", authController.handleLogin);
 
+auth.get("/validate-token", authController.validateToken);
+
 export default auth;

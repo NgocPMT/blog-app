@@ -66,4 +66,11 @@ const handleLogin: RequestHandler[] = [
   },
 ];
 
-export default { handleRegister, handleLogin };
+const validateToken: RequestHandler[] = [
+  passport.authenticate("jwt", { session: false }),
+  async (req: Request, res: Response) => {
+    return res.json({ valid: !!req.user });
+  },
+];
+
+export default { handleRegister, handleLogin, validateToken };
