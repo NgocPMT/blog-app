@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "public"."PostReaction" ADD COLUMN     "reactedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "public"."UserFollows" ADD COLUMN     "followedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

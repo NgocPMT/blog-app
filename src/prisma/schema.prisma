@@ -33,10 +33,11 @@ model User {
 }
 
 model UserFollows {
-  followedBy   User @relation("followedBy", fields: [followedById], references: [id])
+  followedBy   User     @relation("followedBy", fields: [followedById], references: [id])
   followedById Int
-  following    User @relation("following", fields: [followingId], references: [id])
+  following    User     @relation("following", fields: [followingId], references: [id])
   followingId  Int
+  followedAt   DateTime @default(now())
 
   @@id([followingId, followedById])
 }
@@ -80,7 +81,7 @@ model Notification {
   title     String
   message   String
   isRead    Boolean          @default(false)
-  relatedId Int? // For linking to posts, publications, etc.
+  relatedId Int?
   createdAt DateTime         @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -191,6 +192,7 @@ model PostReaction {
   userId         Int
   postId         Int
   reactionTypeId Int
+  reactedAt      DateTime @default(now())
 
   reactionType ReactionType @relation(fields: [reactionTypeId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
