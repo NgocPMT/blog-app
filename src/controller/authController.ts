@@ -63,9 +63,23 @@ const handleLogin: RequestHandler[] = [
 ];
 
 const validateToken: RequestHandler[] = [
-  passport.authenticate("jwt", { session: false }),
+  (req, res, next) => {
+    passport.authenticate(
+      "jwt",
+      { session: false },
+      (err: Error | null, user: User) => {
+        if (err || !user) {
+          return res
+            .status(401)
+            .json({ valid: false, message: "Unauthorized" });
+        }
+        req.user = user;
+        next();
+      }
+    )(req, res, next);
+  },
   async (req: Request, res: Response) => {
-    return res.json({ valid: !!req.user });
+    return res.json({ valid: true });
   },
 ];
 
