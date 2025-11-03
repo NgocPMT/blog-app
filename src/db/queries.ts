@@ -199,6 +199,7 @@ const getUserFollowers = async (id: number) => {
       followedBy: {
         select: {
           id: true,
+          username: true,
           Profile: { select: { name: true, avatarUrl: true } },
         },
       },
@@ -214,6 +215,7 @@ const getUserFollowings = async (id: number) => {
       following: {
         select: {
           id: true,
+          username: true,
           Profile: { select: { name: true, avatarUrl: true } },
         },
       },
