@@ -114,10 +114,21 @@ const postParamValidation: ValidationChain[] = [
     }),
 ];
 
-const userParamValidation: ValidationChain[] = [
+const userIdParamValidation: ValidationChain[] = [
   param("userId")
     .isInt()
     .withMessage("User ID must be an integer")
+    .bail()
+    .custom(async (userId: string) => {
+      const user = await db.getUserById(parseInt(userId));
+      if (!user) throw new Error("User doesn't exist");
+    }),
+];
+
+const usernameParamValidation: ValidationChain[] = [
+  param("username")
+    .notEmpty()
+    .withMessage("Username must not be empty")
     .bail()
     .custom(async (userId: string) => {
       const user = await db.getUserById(parseInt(userId));
@@ -141,7 +152,8 @@ export {
   commentValidation,
   commentParamValidation,
   postParamValidation,
-  userParamValidation,
+  userIdParamValidation,
+  usernameParamValidation,
   profileValidation,
 };
 

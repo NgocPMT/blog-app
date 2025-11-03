@@ -168,6 +168,13 @@ const getUserProfile = async (id: number) => {
   return user ?? null;
 };
 
+const getUserProfileByUsername = async (username: string) => {
+  const user = await prisma.profile.findFirst({
+    where: { user: { username } },
+  });
+  return user ?? null;
+};
+
 const updateProfile = async (profile: Profile) => {
   const { userId, name, avatarUrl, bio } = profile;
   const updatedProfile = await prisma.profile.update({
@@ -208,9 +215,41 @@ const getUserFollowers = async (id: number) => {
   return followers;
 };
 
+const getUserFollowersByUsername = async (username: string) => {
+  const followers = await prisma.userFollows.findMany({
+    where: { following: { username } },
+    include: {
+      followedBy: {
+        select: {
+          id: true,
+          username: true,
+          Profile: { select: { name: true, avatarUrl: true } },
+        },
+      },
+    },
+  });
+  return followers;
+};
+
 const getUserFollowings = async (id: number) => {
   const followings = await prisma.userFollows.findMany({
     where: { followedById: id },
+    include: {
+      following: {
+        select: {
+          id: true,
+          username: true,
+          Profile: { select: { name: true, avatarUrl: true } },
+        },
+      },
+    },
+  });
+  return followings;
+};
+
+const getUserFollowingsByUsername = async (username: string) => {
+  const followings = await prisma.userFollows.findMany({
+    where: { followedBy: { username } },
     include: {
       following: {
         select: {
@@ -256,6 +295,21 @@ const getUserSavedPosts = async (id: number) => {
 const getUserPosts = async (userId: number) => {
   const posts = await prisma.post.findMany({
     where: { userId },
+    include: {
+      user: true,
+      PostReaction: true,
+      PostTopic: true,
+      PostView: true,
+      comments: true,
+      publication: true,
+    },
+  });
+  return posts;
+};
+
+const getUserPostsByUsername = async (username: string) => {
+  const posts = await prisma.post.findMany({
+    where: { user: { username } },
     include: {
       user: true,
       PostReaction: true,
@@ -355,6 +409,10 @@ export default {
   getUserFollowings,
   getUserStatistics,
   getUserSavedPosts,
+  getUserFollowersByUsername,
+  getUserFollowingsByUsername,
+  getUserPostsByUsername,
+  getUserProfileByUsername,
   createUser,
   getCommentsByPostId,
   getCommentById,
