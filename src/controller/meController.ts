@@ -7,7 +7,10 @@ import validate from "../middlewares/validate.js";
 const handleGetSelfProfile = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    if (!req.user) return res.status(403);
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
     console.log(userId);
@@ -19,7 +22,10 @@ const handleGetSelfProfile = [
 const handleGetSelfInformation = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    if (!req.user) return res.status(403);
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
     const information = await db.getUserInformation(userId);
@@ -30,7 +36,10 @@ const handleGetSelfInformation = [
 const handleGetSelfNotifications = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    if (!req.user) return res.status(403);
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
     const notifications = await db.getUserNotifications(userId);
@@ -41,7 +50,10 @@ const handleGetSelfNotifications = [
 const handleGetSelfStatistics = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    if (!req.user) return res.status(403);
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
     const statistics = await db.getUserStatistics(userId);
@@ -52,7 +64,10 @@ const handleGetSelfStatistics = [
 const handleGetSelfFollowers = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    if (!req.user) return res.status(403);
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
     const followers = await db.getUserFollowers(userId);
@@ -63,7 +78,10 @@ const handleGetSelfFollowers = [
 const handleGetSelfFollowings = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    if (!req.user) return res.status(403);
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
     const followings = await db.getUserFollowings(userId);
@@ -74,7 +92,10 @@ const handleGetSelfFollowings = [
 const handleGetSelfSavedPosts = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    if (!req.user) return res.status(403);
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
     const savedPosts = await db.getUserSavedPosts(userId);
@@ -85,7 +106,10 @@ const handleGetSelfSavedPosts = [
 const handleGetSelfPosts = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    if (!req.user) return res.status(403);
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
     const posts = await db.getUserPosts(userId);
@@ -97,7 +121,10 @@ const handleUpdateSelfProfile = [
   passport.authenticate("jwt", { session: false }),
   ...validate(profileValidation),
   async (req: Request, res: Response) => {
-    if (!req.user) return res.status(403);
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
     const { name, avatarUrl, bio } = req.body as {
@@ -114,7 +141,7 @@ const handleUpdateSelfProfile = [
     });
 
     return res.json({
-      message: "Updated successfully",
+      message: "Update profile successfully",
       profile: updatedProfile,
     });
   },

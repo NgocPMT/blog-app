@@ -28,7 +28,7 @@ const handleCreateComment: RequestHandler[] = [
       userId,
       postId: parseInt(postId),
     });
-    res.status(201).json({ message: "Create successfully", comment });
+    res.status(201).json({ message: "Create comment successfully", comment });
   },
 ];
 
@@ -44,7 +44,7 @@ const handleUpdateComment: RequestHandler[] = [
       id: parseInt(commentId),
       content,
     });
-    res.json({ message: "Update successfully", comment });
+    res.json({ message: "Update comment successfully", comment });
   },
 ];
 
@@ -55,7 +55,7 @@ const handleDeleteComment: RequestHandler[] = [
   async (req: Request, res: Response) => {
     const { commentId } = req.params;
     const comment = await db.deleteComment(parseInt(commentId));
-    res.json({ message: "Delete successfully", comment });
+    res.json({ message: "Delete comment successfully", comment });
   },
 ];
 

@@ -8,6 +8,7 @@ const registerValidation: ValidationChain[] = [
     .trim()
     .notEmpty()
     .withMessage(`Username ${emptyErr}`)
+    .bail()
     .isLength({ min: 3, max: 255 })
     .withMessage("Username must be from 3 to 255 characters!")
     .bail()
@@ -19,6 +20,7 @@ const registerValidation: ValidationChain[] = [
     .trim()
     .notEmpty()
     .withMessage(`Email ${emptyErr}`)
+    .bail()
     .isEmail()
     .withMessage("You must enter a valid email!")
     .bail()
@@ -30,6 +32,7 @@ const registerValidation: ValidationChain[] = [
     .trim()
     .notEmpty()
     .withMessage(`Password ${emptyErr}`)
+    .bail()
     .isLength({ min: 6, max: 255 })
     .withMessage("Password must be from 6 to 255 characters!"),
   body("passwordConfirmation")
@@ -40,7 +43,16 @@ const registerValidation: ValidationChain[] = [
 ];
 
 const loginValidation: ValidationChain[] = [
-  body("username").trim().notEmpty().withMessage(`Username ${emptyErr}`),
+  body("username")
+    .trim()
+    .notEmpty()
+    .withMessage(`Username ${emptyErr}`)
+    .bail()
+    .custom(async (username) => {
+      const user = await db.getUserByUsername(username);
+      if (!user) throw new Error("username or password is incorrect");
+      if (!user.isActive) throw new Error("this account have been banned");
+    }),
   body("password").trim().notEmpty().withMessage(`Password ${emptyErr}`),
 ];
 
@@ -49,8 +61,10 @@ const postValidation: ValidationChain[] = [
     .trim()
     .notEmpty()
     .withMessage(`Post title ${emptyErr}`)
+    .bail()
     .isLength({ min: 2, max: 255 })
     .withMessage("Post title must be from 2 to 255 characters!")
+    .bail()
     .custom(async (title, { req }) => {
       const userId = (req.user as { id: number }).id;
       const post = await db.getPostByTitleAndUserId(title, userId);

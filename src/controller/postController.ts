@@ -46,7 +46,7 @@ const handleUpdatePost: RequestHandler[] = [
     const id = parseInt(req.params.postId);
     const { title, content } = req.body;
     await db.updatePost({ id, title, content });
-    return res.json({ message: "Update successfully" });
+    return res.json({ message: "Update post successfully" });
   },
 ];
 
@@ -58,7 +58,7 @@ const handleDeletePost: RequestHandler[] = [
     const id = parseInt(req.params.postId);
 
     await db.deletePost(id);
-    res.json({ message: "Delete successfully" });
+    res.json({ message: "Delete post successfully" });
   },
 ];
 
@@ -66,6 +66,9 @@ const handleCreatePost = [
   passport.authenticate("jwt", { session: false }),
   ...validate(postValidation),
   async (req: Request, res: Response) => {
+    if (!req.user)
+      return res.status(403).json({ error: "You must login to create a post" });
+
     const { title, content, coverImageUrl } = req.body;
 
     const parsedContent = JSON.parse(content);

@@ -18,9 +18,7 @@ const handleRegister: RequestHandler[] = [
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
-      return res
-        .status(400)
-        .json({ errors: errors.array().map((error) => error.msg) });
+      return res.status(400).json({ error: errors.array()[0] });
 
     const { username, email, password } = req.body;
 
@@ -37,9 +35,7 @@ const handleLogin: RequestHandler[] = [
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
-      return res
-        .status(400)
-        .json({ errors: errors.array().map((error) => error.msg) });
+      return res.status(400).json({ error: errors.array()[0] });
 
     passport.authenticate(
       "local",
@@ -55,7 +51,7 @@ const handleLogin: RequestHandler[] = [
             return res.status(500).json({ message: loginErr.message });
 
           const token = jwt.sign(
-            { id: user.id },
+            { username: user.username },
             process.env.JWT_SECRET_KEY as string,
             { expiresIn: "8h" }
           );
