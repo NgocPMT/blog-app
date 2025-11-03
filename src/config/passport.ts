@@ -34,7 +34,7 @@ passport.use(
       if (!match)
         return done(null, false, { message: "Password is incorrect." });
 
-      return done(null, { id: user.id });
+      return done(null, { id: user.id, username: user.username });
     } catch (error) {
       done(error);
     }
@@ -47,7 +47,7 @@ passport.use(
       if (!payload.id) return done(null, false);
       const user = await db.getUserById(payload.id);
       if (!user) return done(null, false);
-      return done(null, { id: user.id });
+      return done(null, { id: user.id, username: user.username });
     } catch (error) {
       done(error);
     }
