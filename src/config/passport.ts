@@ -44,6 +44,7 @@ passport.use(
 passport.use(
   new JWTStrategy(jwtOptions, async (payload: JWTPayload, done) => {
     try {
+      if (!payload.id) return done(null, false);
       const user = await db.getUserById(payload.id);
       if (!user) return done(null, false);
       return done(null, { id: user.id });
