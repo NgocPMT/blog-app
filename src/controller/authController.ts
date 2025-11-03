@@ -51,7 +51,7 @@ const handleLogin: RequestHandler[] = [
             return res.status(500).json({ message: loginErr.message });
 
           const token = jwt.sign(
-            { username: user.username },
+            { username: user.username, id: user.id },
             process.env.JWT_SECRET_KEY as string,
             { expiresIn: "8h" }
           );
