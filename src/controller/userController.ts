@@ -18,7 +18,6 @@ const handleGetUserInformation: RequestHandler[] = [
 
 const handleGetUserProfile: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
-  validateAuthorization,
   ...validate(userParamValidation),
   async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId);
@@ -29,7 +28,6 @@ const handleGetUserProfile: RequestHandler[] = [
 
 const handleGetUserPosts: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
-  validateAuthorization,
   ...validate(userParamValidation),
   async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId);
