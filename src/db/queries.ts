@@ -42,7 +42,14 @@ const getPublishedPosts = async (
       title: searchQuery ? { contains: searchQuery, mode: "insensitive" } : {},
     },
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          Profile: true,
+        },
+      },
       PostReaction: true,
       PostTopic: true,
       PostView: true,
@@ -125,7 +132,14 @@ const getPostById = async (id: number) => {
   const post = await prisma.post.findUnique({
     where: { id },
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          Profile: true,
+        },
+      },
       PostReaction: true,
       PostTopic: true,
       PostView: true,
@@ -296,7 +310,14 @@ const getUserPosts = async (userId: number) => {
   const posts = await prisma.post.findMany({
     where: { userId },
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          Profile: true,
+        },
+      },
       PostReaction: true,
       PostTopic: true,
       PostView: true,
@@ -311,7 +332,14 @@ const getUserPostsByUsername = async (username: string) => {
   const posts = await prisma.post.findMany({
     where: { user: { username } },
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          Profile: true,
+        },
+      },
       PostReaction: true,
       PostTopic: true,
       PostView: true,
