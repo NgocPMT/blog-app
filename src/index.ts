@@ -14,7 +14,7 @@ import meRouter from "./routes/meRouter.js";
 const app: Express = express();
 
 app.use(express.json());
-const allowedOrigins = ["http://localhost:5173", "https://easium.netlify.app/"];
+const allowedOrigins = ["http://localhost:5173", "https://easium.netlify.app"];
 
 app.use(
   cors({
