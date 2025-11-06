@@ -44,8 +44,10 @@ const getPublishedPosts = async (
     select: {
       id: true,
       title: true,
+      content: true,
       coverImageUrl: true,
       slug: true,
+      createdAt: true,
       user: {
         select: {
           id: true,
@@ -319,6 +321,7 @@ const getUserSavedPosts = async (page: number, limit: number, id: number) => {
           title: true,
           slug: true,
           coverImageUrl: true,
+          createdAt: true,
           PostReaction: true,
           comments: true,
         },
@@ -355,6 +358,7 @@ const getUserPosts = async (page: number, limit: number, userId: number) => {
       title: true,
       slug: true,
       coverImageUrl: true,
+      createdAt: true,
       user: {
         select: {
           id: true,
@@ -376,7 +380,12 @@ const getUserPosts = async (page: number, limit: number, userId: number) => {
 const getUserPostsByUsername = async (username: string) => {
   const posts = await prisma.post.findMany({
     where: { user: { username } },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      coverImageUrl: true,
+      createdAt: true,
       user: {
         select: {
           id: true,
