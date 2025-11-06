@@ -285,14 +285,17 @@ const getUserFollowingsByUsername = async (username: string) => {
   return followings;
 };
 
-const getUserStatistics = async (id: number) => {
+const getUserStatistics = async (page: number, limit: number, id: number) => {
   const follows = await prisma.userFollows.findMany({
     where: { followingId: id },
     select: { followedAt: true },
   });
   const posts = await prisma.post.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
     where: { userId: id },
     select: {
+      id: true,
       title: true,
       slug: true,
       createdAt: true,
