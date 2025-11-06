@@ -10,7 +10,7 @@ postRouter.get("/", postController.handleGetPostsPagination);
 
 postRouter.post("/", postController.handleCreatePost);
 
-postRouter.get("/:postId", postController.handleGetPostById);
+postRouter.get("/:slug", postController.handleGetPostBySlug);
 
 postRouter.put("/:postId", postController.handleUpdatePost);
 

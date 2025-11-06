@@ -97,8 +97,16 @@ const handleGetSelfSavedPosts = [
         .status(401)
         .json({ error: "User must logged in to do this action" });
 
+    const { page, limit } = req.query as {
+      page: string;
+      limit: string;
+    };
     const userId = (req.user as { id: number }).id;
-    const savedPosts = await db.getUserSavedPosts(userId);
+    const savedPosts = await db.getUserSavedPosts(
+      parseInt(page),
+      parseInt(limit),
+      userId
+    );
     return res.json(savedPosts);
   },
 ];
@@ -111,8 +119,16 @@ const handleGetSelfPosts = [
         .status(401)
         .json({ error: "User must logged in to do this action" });
 
+    const { page, limit } = req.query as {
+      page: string;
+      limit: string;
+    };
     const userId = (req.user as { id: number }).id;
-    const posts = await db.getUserPosts(userId);
+    const posts = await db.getUserPosts(
+      parseInt(page),
+      parseInt(limit),
+      userId
+    );
     return res.json(posts);
   },
 ];

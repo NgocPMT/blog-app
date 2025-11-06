@@ -10,11 +10,10 @@ import { validatePostAuthorization } from "../middlewares/validateAuthorization.
 import validate from "../middlewares/validate.js";
 import slugify from "slug";
 
-const handleGetPostById: RequestHandler[] = [
-  ...validate(postParamValidation),
+const handleGetPostBySlug: RequestHandler[] = [
   async (req: Request, res: Response) => {
-    const id = parseInt(req.params.postId);
-    const post = await db.getPostById(id);
+    const { slug } = req.params;
+    const post = await db.getPostBySlug(slug);
     res.json(post);
   },
 ];
@@ -95,7 +94,7 @@ const handleCreatePost = [
 ];
 
 export default {
-  handleGetPostById,
+  handleGetPostBySlug,
   handleUpdatePost,
   handleDeletePost,
   handleCreatePost,

@@ -41,7 +41,11 @@ const getPublishedPosts = async (
       status: "PUBLISHED",
       title: searchQuery ? { contains: searchQuery, mode: "insensitive" } : {},
     },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      coverImageUrl: true,
+      slug: true,
       user: {
         select: {
           id: true,
@@ -60,19 +64,23 @@ const getPublishedPosts = async (
   return posts;
 };
 
-const getPostByTitleAndUserId = async (title: string, userId: number) => {
-  const post = await prisma.post.findFirst({
-    where: { title: { equals: title, mode: "insensitive" }, userId },
+const getPostBySlug = async (slug: string) => {
+  const post = await prisma.post.findUnique({
+    where: { slug },
     include: {
-      user: true,
+      user: {
+        select: {
+          Profile: true,
+          username: true,
+        },
+      },
       PostReaction: true,
-      PostTopic: true,
       PostView: true,
+      PostTopic: true,
       comments: true,
-      publication: true,
     },
   });
-  return post ?? null;
+  return post || null;
 };
 
 const createPost = async (post: Post) => {
@@ -296,20 +304,54 @@ const getUserStatistics = async (id: number) => {
   return { follows, posts };
 };
 
-const getUserSavedPosts = async (id: number) => {
+const getUserSavedPosts = async (page: number, limit: number, id: number) => {
   const savedPosts = await prisma.readingList.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
     where: { userId: id },
     include: {
-      post: { include: { PostReaction: true, comments: true } },
+      post: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          coverImageUrl: true,
+          PostReaction: true,
+          comments: true,
+        },
+      },
     },
   });
   return savedPosts;
 };
 
-const getUserPosts = async (userId: number) => {
+const addToSavedPost = async (postId: number, userId: number) => {
+  const savedPost = await prisma.readingList.create({
+    data: {
+      postId,
+      userId,
+    },
+  });
+  return savedPost;
+};
+
+const deleteSavedPost = async (id: number) => {
+  const deletedPost = await prisma.readingList.delete({
+    where: { id },
+  });
+  return deletedPost;
+};
+
+const getUserPosts = async (page: number, limit: number, userId: number) => {
   const posts = await prisma.post.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
     where: { userId },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      coverImageUrl: true,
       user: {
         select: {
           id: true,
@@ -348,6 +390,14 @@ const getUserPostsByUsername = async (username: string) => {
     },
   });
   return posts;
+};
+
+const getPostByTitleAndUserId = async (title: string, userId: number) => {
+  const post = await prisma.post.findFirst({
+    where: { title, userId },
+    select: { id: true },
+  });
+  return post;
 };
 
 const createUser = async (user: User) => {
@@ -420,7 +470,7 @@ const deleteComment = async (id: number) => {
 export default {
   getPublishedPosts,
   getPostById,
-  getPostByTitleAndUserId,
+  getPostBySlug,
   createPost,
   updatePost,
   deletePost,
@@ -437,8 +487,11 @@ export default {
   getUserFollowings,
   getUserStatistics,
   getUserSavedPosts,
+  addToSavedPost,
+  deleteSavedPost,
   getUserFollowersByUsername,
   getUserFollowingsByUsername,
+  getPostByTitleAndUserId,
   getUserPostsByUsername,
   getUserProfileByUsername,
   createUser,

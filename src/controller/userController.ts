@@ -29,16 +29,6 @@ const handleGetUserProfile: RequestHandler[] = [
   },
 ];
 
-const handleGetUserPosts: RequestHandler[] = [
-  passport.authenticate("jwt", { session: false }),
-  ...validate(userIdParamValidation),
-  async (req: Request, res: Response) => {
-    const userId = parseInt(req.params.userId);
-    const posts = await db.getUserPosts(userId);
-    return res.json(posts);
-  },
-];
-
 const handleGetUserPostsByUsername: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
   ...validate(usernameParamValidation),
@@ -82,7 +72,6 @@ const handleGetUserFollowingsByUsername: RequestHandler[] = [
 export default {
   handleGetUserInformation,
   handleGetUserProfile,
-  handleGetUserPosts,
   handleGetUserPostsByUsername,
   handleGetUserProfileByUsername,
   handleGetUserFollowersByUsername,
