@@ -16,6 +16,10 @@ postRouter.put("/:postId", postController.handleUpdatePost);
 
 postRouter.delete("/:postId", postController.handleDeletePost);
 
+postRouter.post("/:postId/reactions", postController.handleReactPost);
+
+postRouter.delete("/:postId/reactions", postController.handleUnreactPost);
+
 postRouter.use(
   "/:postId/comments",
   validate(postParamValidation),

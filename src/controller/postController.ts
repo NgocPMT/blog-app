@@ -5,10 +5,12 @@ import {
   postValidation,
   postParamValidation,
   postQueryValidation,
+  reactionValidation,
 } from "../validation/validation.js";
 import { validatePostAuthorization } from "../middlewares/validateAuthorization.js";
 import validate from "../middlewares/validate.js";
 import slugify from "slug";
+import { error } from "console";
 
 const handleGetPostBySlug: RequestHandler[] = [
   async (req: Request, res: Response) => {
@@ -38,7 +40,6 @@ const handleGetPostsPagination: RequestHandler[] = [
 
 const handleUpdatePost: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
-  validatePostAuthorization,
   ...validate(postParamValidation),
   ...validate(postValidation),
   async (req: Request, res: Response) => {
@@ -93,10 +94,49 @@ const handleCreatePost = [
   },
 ];
 
+const handleReactPost = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(postParamValidation),
+  ...validate(reactionValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user)
+      return res.status(403).json({ error: "You must login to create a post" });
+
+    const { postId } = req.params;
+    const { reactionTypeId } = req.body;
+
+    const userId = (req.user as { id: number }).id;
+    const isReacted = await db.isReacted(parseInt(postId), userId);
+    if (isReacted)
+      return res
+        .status(400)
+        .json({ error: "This user have reacted on this post." });
+    await db.reactPost(reactionTypeId, parseInt(postId), userId);
+    res.status(201).json({ message: "Reacted successfully" });
+  },
+];
+
+const handleUnreactPost = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(postParamValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user)
+      return res.status(403).json({ error: "You must login to create a post" });
+
+    const { postId } = req.params;
+
+    const userId = (req.user as { id: number }).id;
+    await db.unreactPost(parseInt(postId), userId);
+    res.json({ message: "Unreacted successfully" });
+  },
+];
+
 export default {
   handleGetPostBySlug,
   handleUpdatePost,
   handleDeletePost,
   handleCreatePost,
   handleGetPostsPagination,
+  handleReactPost,
+  handleUnreactPost,
 };

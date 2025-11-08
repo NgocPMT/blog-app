@@ -88,6 +88,27 @@ const profileValidation: ValidationChain[] = [
     .withMessage("Name must be under 160 characters!"),
 ];
 
+const reactionValidation: ValidationChain[] = [
+  body("reactionTypeId")
+    .isInt()
+    .withMessage("Reaction ID must be an integer!")
+    .bail()
+    .toInt()
+    .custom((reactionTypeId, { req }) => {
+      if (typeof reactionTypeId !== "number") {
+        throw new Error("Reaction ID must be a number, not a string!");
+      }
+      return true;
+    })
+    .bail()
+    .custom(async (reactionTypeId: string) => {
+      const reactionType = await db.getReactionTypeById(
+        parseInt(reactionTypeId)
+      );
+      if (!reactionType) throw new Error("Reaction doesn't exist");
+    }),
+];
+
 const commentValidation: ValidationChain[] = [
   body("content").trim().notEmpty().withMessage(`Comment ${emptyErr}`),
 ];
@@ -155,6 +176,7 @@ export {
   userIdParamValidation,
   usernameParamValidation,
   profileValidation,
+  reactionValidation,
 };
 
 export default {
@@ -165,4 +187,5 @@ export default {
   commentParamValidation,
   postParamValidation,
   profileValidation,
+  reactionValidation,
 };

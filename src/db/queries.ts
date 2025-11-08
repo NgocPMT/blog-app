@@ -159,6 +159,26 @@ const createPost = async (post: Post) => {
   return createdPost;
 };
 
+const reactPost = async (
+  reactionTypeId: number,
+  postId: number,
+  userId: number
+) => {
+  await prisma.postReaction.create({
+    data: {
+      postId,
+      userId,
+      reactionTypeId,
+    },
+  });
+};
+
+const unreactPost = async (postId: number, userId: number) => {
+  await prisma.postReaction.delete({
+    where: { userId_postId: { postId, userId } },
+  });
+};
+
 const doesSlugExist = async (slug: string) => {
   const dbSlug = await prisma.post.findUnique({
     where: { slug },
@@ -216,6 +236,18 @@ const getPostById = async (id: number) => {
     },
   });
   return post ?? null;
+};
+
+const getReactionTypeById = async (id: number) => {
+  const reactionType = await prisma.reactionType.findUnique({ where: { id } });
+  return reactionType || null;
+};
+
+const isReacted = async (postId: number, userId: number) => {
+  const isReacted = await prisma.postReaction.findUnique({
+    where: { userId_postId: { postId, userId } },
+  });
+  return !!isReacted;
 };
 
 const getUserById = async (id: number) => {
@@ -570,4 +602,8 @@ export default {
   createComment,
   updateComment,
   deleteComment,
+  reactPost,
+  unreactPost,
+  getReactionTypeById,
+  isReacted,
 };
