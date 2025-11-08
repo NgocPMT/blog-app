@@ -34,25 +34,79 @@ const getPublishedPosts = async (
   limit: number,
   searchQuery: string | null
 ) => {
-  const posts = await prisma.post.findMany({
+  if (searchQuery) {
+    const posts = await prisma.$queryRaw`
+      SELECT 
+        p.id, 
+        p.title, 
+        p.content, 
+        p."coverImageUrl", 
+        p.slug, 
+        p."createdAt",
+        p."userId",
+        p."publicationId",
+        json_build_object(
+          'id', u.id,
+          'email', u.email,
+          'username', u.username,
+          'Profile', (SELECT row_to_json(prof.*) FROM "Profile" prof WHERE prof."userId" = u.id)
+        ) as user,
+        COALESCE((
+          SELECT json_agg(pr.*)
+          FROM "PostReaction" pr
+          WHERE pr."postId" = p.id
+        ), '[]'::json) as "PostReaction",
+        COALESCE((
+          SELECT json_agg(pt.*)
+          FROM "PostTopic" pt
+          WHERE pt."postId" = p.id
+        ), '[]'::json) as "PostTopic",
+        COALESCE((
+          SELECT json_agg(pv.*)
+          FROM "PostView" pv
+          WHERE pv."postId" = p.id
+        ), '[]'::json) as "PostView",
+        COALESCE((
+          SELECT json_agg(c.*)
+          FROM "Comment" c
+          WHERE c."postId" = p.id
+        ), '[]'::json) as comments,
+        (
+          SELECT row_to_json(pub.*)
+          FROM "Publication" pub
+          WHERE pub.id = p."publicationId"
+        ) as publication,
+        -- Calculate relevance score using TEXT fields only
+        (
+          similarity(p.title::text, ${searchQuery}) * 3 +
+          similarity(u.username::text, ${searchQuery}) * 2
+        ) as relevance_score
+      FROM "Post" p
+      INNER JOIN "User" u ON p."userId" = u.id
+      WHERE 
+        p.status = 'PUBLISHED'
+        AND (
+          p.title ILIKE ${"%" + searchQuery + "%"}
+          OR u.username ILIKE ${"%" + searchQuery + "%"}
+          OR p.title % ${searchQuery}
+          OR u.username % ${searchQuery}
+        )
+      ORDER BY relevance_score DESC, p."createdAt" DESC
+      LIMIT ${limit}
+      OFFSET ${(page - 1) * limit}
+    `;
+
+    return posts;
+  }
+
+  // Regular query without search
+  return prisma.post.findMany({
     skip: (page - 1) * limit,
     take: limit,
-    where: {
-      status: "PUBLISHED",
-      title: searchQuery ? { contains: searchQuery, mode: "insensitive" } : {},
-    },
-    select: {
-      id: true,
-      title: true,
-      content: true,
-      coverImageUrl: true,
-      slug: true,
-      createdAt: true,
+    where: { status: "PUBLISHED" },
+    include: {
       user: {
-        select: {
-          id: true,
-          email: true,
-          username: true,
+        include: {
           Profile: true,
         },
       },
@@ -62,8 +116,8 @@ const getPublishedPosts = async (
       comments: true,
       publication: true,
     },
+    orderBy: { createdAt: "desc" },
   });
-  return posts;
 };
 
 const getPostBySlug = async (slug: string) => {
@@ -76,7 +130,11 @@ const getPostBySlug = async (slug: string) => {
           username: true,
         },
       },
-      PostReaction: true,
+      PostReaction: {
+        include: {
+          reactionType: true,
+        },
+      },
       PostView: true,
       PostTopic: true,
       comments: true,
