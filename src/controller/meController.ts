@@ -200,6 +200,16 @@ const handleAddToSavedPosts = [
     const { postId } = req.body;
 
     const userId = (req.user as { id: number }).id;
+
+    const post = await db.getSavedPostByPostIdAndUserId(
+      parseInt(postId),
+      userId
+    );
+    if (post)
+      return res
+        .status(400)
+        .json({ error: "This post is already saved to your library" });
+
     await db.addToSavedPost(parseInt(postId), userId);
     return res
       .status(201)
@@ -218,6 +228,16 @@ const handleDeleteSavedPosts = [
     const { postId } = req.params;
 
     const userId = (req.user as { id: number }).id;
+
+    const post = await db.getSavedPostByPostIdAndUserId(
+      parseInt(postId),
+      userId
+    );
+    if (!post)
+      return res
+        .status(400)
+        .json({ error: "This post is not saved to your library yet" });
+
     await db.deleteSavedPost(parseInt(postId), userId);
     return res.json({ message: "Deleted saved post successfully" });
   },

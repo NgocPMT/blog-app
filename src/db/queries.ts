@@ -531,6 +531,16 @@ const getPostByTitleAndUserId = async (title: string, userId: number) => {
   return post;
 };
 
+const getSavedPostByPostIdAndUserId = async (
+  postId: number,
+  userId: number
+) => {
+  const post = await prisma.readingList.findUnique({
+    where: { postId_userId: { postId, userId } },
+  });
+  return post;
+};
+
 const createUser = async (user: User) => {
   const { username, email, password } = user;
   await prisma.user.create({
@@ -638,4 +648,5 @@ export default {
   followUser,
   unfollowUser,
   getUserByFollowingIdAndUserId,
+  getSavedPostByPostIdAndUserId,
 };
