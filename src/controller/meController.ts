@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import {
   postParamValidation,
   postQueryValidation,
+  postIdValidation,
   profileValidation,
 } from "../validation/validation.js";
 import validate from "../middlewares/validate.js";
@@ -127,13 +128,13 @@ const handleGetSelfSavedPosts = [
 
 const handleAddToSavedPosts = [
   passport.authenticate("jwt", { session: false }),
-  ...validate(postParamValidation),
+  ...validate(postIdValidation),
   async (req: Request, res: Response) => {
     if (!req.user)
       return res
         .status(401)
         .json({ error: "User must logged in to do this action" });
-    const { postId } = req.params;
+    const { postId } = req.body;
 
     const userId = (req.user as { id: number }).id;
     await db.addToSavedPost(parseInt(postId), userId);
@@ -155,7 +156,7 @@ const handleDeleteSavedPosts = [
 
     const userId = (req.user as { id: number }).id;
     await db.deleteSavedPost(parseInt(postId), userId);
-    return res.status(201).json({ message: "Deleted saved post successfully" });
+    return res.json({ message: "Deleted saved post successfully" });
   },
 ];
 

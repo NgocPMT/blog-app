@@ -135,6 +135,17 @@ const postParamValidation: ValidationChain[] = [
     }),
 ];
 
+const postIdValidation: ValidationChain[] = [
+  body("postId")
+    .isInt()
+    .withMessage("Post ID must be an integer!")
+    .bail()
+    .custom(async (postId: string) => {
+      const post = await db.getPostById(parseInt(postId));
+      if (!post) throw new Error("Post doesn't exist");
+    }),
+];
+
 const userIdParamValidation: ValidationChain[] = [
   param("userId")
     .isInt()
@@ -177,6 +188,7 @@ export {
   usernameParamValidation,
   profileValidation,
   reactionValidation,
+  postIdValidation,
 };
 
 export default {
@@ -186,6 +198,7 @@ export default {
   commentValidation,
   commentParamValidation,
   postParamValidation,
+  postIdValidation,
   profileValidation,
   reactionValidation,
 };
