@@ -23,7 +23,7 @@ meRouter.get("/saved-posts", meController.handleGetSelfSavedPosts);
 
 meRouter.post("/saved-post", meController.handleAddToSavedPosts);
 
-meRouter.delete("/saved-post", meController.handleDeleteSavedPosts);
+meRouter.delete("/saved-post/:postId", meController.handleDeleteSavedPosts);
 
 meRouter.get("/posts", meController.handleGetSelfPosts);
 
