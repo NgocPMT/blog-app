@@ -80,21 +80,25 @@ const handleGetSelfStatistics = [
 const handleGetSelfFollowers = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    if (!req.user)
+    if (!req.user) {
       return res
         .status(401)
-        .json({ error: "User must logged in to do this action" });
+        .json({ error: "User must be logged in to do this action" });
+    }
 
     const { page, limit } = req.query as {
-      page: string;
-      limit: string;
+      page?: string;
+      limit?: string;
     };
+
     const userId = (req.user as { id: number }).id;
+
     const followers = await db.getUserFollowers(
-      parseInt(page),
-      parseInt(limit),
-      userId
+      userId,
+      page ? parseInt(page) : undefined,
+      limit ? parseInt(limit) : undefined
     );
+
     return res.json(followers);
   },
 ];

@@ -78,11 +78,11 @@ model Notification {
   id        Int              @id @default(autoincrement())
   userId    Int
   type      NotificationType
-  title     String
   message   String
   isRead    Boolean          @default(false)
   relatedId Int?
   createdAt DateTime         @default(now())
+  actorId   Int
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])

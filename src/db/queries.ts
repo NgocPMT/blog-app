@@ -1,4 +1,4 @@
-import { PrismaClient, PostStatus } from "@prisma/client";
+import { PrismaClient, PostStatus, NotificationType } from "@prisma/client";
 interface User {
   username: string;
   email: string;
@@ -25,6 +25,13 @@ interface Profile {
   name: string;
   avatarUrl: string;
   bio: string;
+}
+
+interface Notification {
+  userId: number;
+  actorId: number;
+  relatedId: number;
+  type: NotificationType;
 }
 
 const prisma = new PrismaClient();
@@ -170,6 +177,9 @@ const reactPost = async (
       userId,
       reactionTypeId,
     },
+    include: {
+      reactionType: true,
+    },
   });
   return reaction || null;
 };
@@ -253,8 +263,9 @@ const getReactionTypeById = async (id: number) => {
 const isReacted = async (postId: number, userId: number) => {
   const isReacted = await prisma.postReaction.findUnique({
     where: { userId_postId: { postId, userId } },
+    include: { reactionType: true },
   });
-  return !!isReacted;
+  return isReacted;
 };
 
 const getUserById = async (id: number) => {
@@ -316,14 +327,60 @@ const updateProfile = async (profile: Profile) => {
 const getUserNotifications = async (id: number) => {
   const notifications = await prisma.notification.findMany({
     where: { userId: id },
+    include: {
+      user: {
+        select: {
+          Profile: true,
+          username: true,
+          email: true,
+          id: true,
+        },
+      },
+    },
   });
   return notifications;
 };
 
-const getUserFollowers = async (page: number, limit: number, id: number) => {
+const createNotification = async (notification: Notification) => {
+  const { userId, actorId, relatedId, type } = notification;
+  const actorProfile = await getUserProfile(actorId);
+  let message;
+  switch (type) {
+    case "POST_REACTION": {
+      message = `${actorProfile?.name} reacted on your post.`;
+      break;
+    }
+    case "NEW_COMMENT": {
+      message = `${actorProfile?.name} commented on your post.`;
+      break;
+    }
+    case "NEW_POST": {
+      message = `${actorProfile?.name} has created a new post.`;
+      break;
+    }
+    case "PUBLICATION_INVITE": {
+      message = `${actorProfile?.name} invite you to join their publication.`;
+    }
+  }
+  const createdNotification = await prisma.notification.create({
+    data: {
+      userId,
+      actorId,
+      message,
+      relatedId,
+      type,
+    },
+  });
+  return createdNotification;
+};
+
+const getUserFollowers = async (id: number, page?: number, limit?: number) => {
+  const skip = page && limit ? page * limit : 0;
+  const take = limit || undefined;
+
   const followers = await prisma.userFollows.findMany({
-    skip: page * limit,
-    take: limit,
+    skip,
+    take,
     where: { followingId: id },
     include: {
       followedBy: {
@@ -335,6 +392,7 @@ const getUserFollowers = async (page: number, limit: number, id: number) => {
       },
     },
   });
+
   return followers;
 };
 
@@ -387,6 +445,23 @@ const getUserFollowings = async (page: number, limit: number, id: number) => {
     },
   });
   return followings;
+};
+
+const getUserByPostId = async (id: number) => {
+  const user = await prisma.post.findUnique({
+    where: { id },
+    select: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          Profile: true,
+        },
+      },
+    },
+  });
+  return user;
 };
 
 const getUserByFollowingIdAndUserId = async (
@@ -659,4 +734,6 @@ export default {
   getUserByFollowingIdAndUserId,
   getSavedPostByPostIdAndUserId,
   getReactionTypes,
+  createNotification,
+  getUserByPostId,
 };

@@ -191,9 +191,18 @@ const usernameParamValidation: ValidationChain[] = [
 ];
 
 const postQueryValidation: ValidationChain[] = [
-  query("page").isInt().withMessage("Page index must be an integer"),
-  query("limit").isInt().withMessage("Pagination must be an integer"),
+  query("page")
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage("Page index must be an integer"),
+
+  query("limit")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("Pagination limit must be an integer"),
+
   query("search")
+    .optional()
     .isLength({ max: 255 })
     .withMessage("Search query must be under 255 characters"),
 ];

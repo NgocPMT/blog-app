@@ -81,13 +81,23 @@ const handleCreatePost = [
     }
 
     const userId = (req.user as { id: number }).id;
-    await db.createPost({
+    const createdPost = await db.createPost({
       title,
       content: parsedContent,
       slug,
       status: "PUBLISHED",
       userId,
       coverImageUrl,
+    });
+    const followers = await db.getUserFollowers(userId);
+
+    followers.forEach(async (follower) => {
+      await db.createNotification({
+        actorId: userId,
+        type: "NEW_POST",
+        relatedId: createdPost.id,
+        userId: follower.followedBy.id,
+      });
     });
     res.status(201).json({ message: "Create post successfully" });
   },
@@ -110,8 +120,24 @@ const handleReactPost = [
       return res
         .status(400)
         .json({ error: "This user have reacted on this post." });
-    await db.reactPost(reactionTypeId, parseInt(postId), userId);
-    res.status(201).json({ message: "Reacted successfully" });
+
+    const reacted = await db.reactPost(
+      reactionTypeId,
+      parseInt(postId),
+      userId
+    );
+
+    const author = await db.getUserByPostId(parseInt(postId));
+
+    if (!author) return res.status(500).json({ error: "Something went wrong" });
+
+    await db.createNotification({
+      userId: author.user.id,
+      relatedId: parseInt(postId),
+      type: "POST_REACTION",
+      actorId: userId,
+    });
+    res.status(201).json({ message: "Reacted successfully", reacted });
   },
 ];
 
@@ -125,8 +151,8 @@ const handleUnreactPost = [
     const { postId } = req.params;
 
     const userId = (req.user as { id: number }).id;
-    await db.unreactPost(parseInt(postId), userId);
-    res.json({ message: "Unreacted successfully" });
+    const unreacted = await db.unreactPost(parseInt(postId), userId);
+    res.json({ message: "Unreacted successfully", unreacted });
   },
 ];
 
