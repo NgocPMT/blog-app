@@ -238,6 +238,11 @@ const getPostById = async (id: number) => {
   return post ?? null;
 };
 
+const getReactionTypes = async () => {
+  const reactions = await prisma.reactionType.findMany();
+  return reactions;
+};
+
 const getReactionTypeById = async (id: number) => {
   const reactionType = await prisma.reactionType.findUnique({ where: { id } });
   return reactionType || null;
@@ -651,4 +656,5 @@ export default {
   unfollowUser,
   getUserByFollowingIdAndUserId,
   getSavedPostByPostIdAndUserId,
+  getReactionTypes,
 };

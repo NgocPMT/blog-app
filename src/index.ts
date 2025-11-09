@@ -10,6 +10,7 @@ import internalErrorHandling from "./middlewares/internalErrorHandling.js";
 import cors from "cors";
 import imageRouter from "./routes/imageRouter.js";
 import meRouter from "./routes/meRouter.js";
+import reactionRouter from "./routes/reactionRouter.js";
 
 const app: Express = express();
 
@@ -34,6 +35,7 @@ app.use("/posts", postRouter);
 app.use("/users", userRouter);
 app.use("/me", meRouter);
 app.use("/images", imageRouter);
+app.use("/reactions", reactionRouter);
 app.use(routeErrorHandling);
 app.use(internalErrorHandling);
 
