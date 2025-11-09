@@ -2,6 +2,7 @@ import passport from "passport";
 import db from "../db/queries.js";
 import type { Request, Response } from "express";
 import {
+  postParamValidation,
   postQueryValidation,
   profileValidation,
 } from "../validation/validation.js";
@@ -124,6 +125,40 @@ const handleGetSelfSavedPosts = [
   },
 ];
 
+const handleAddToSavedPosts = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(postParamValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
+    const { postId } = req.params;
+
+    const userId = (req.user as { id: number }).id;
+    await db.addToSavedPost(parseInt(postId), userId);
+    return res
+      .status(201)
+      .json({ message: "Added to saved post successfully" });
+  },
+];
+
+const handleDeleteSavedPosts = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(postParamValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
+    const { postId } = req.params;
+
+    const userId = (req.user as { id: number }).id;
+    await db.deleteSavedPost(parseInt(postId), userId);
+    return res.status(201).json({ message: "Deleted saved post successfully" });
+  },
+];
+
 const handleGetSelfPosts = [
   passport.authenticate("jwt", { session: false }),
   ...validate(postQueryValidation),
@@ -187,4 +222,6 @@ export default {
   handleGetSelfSavedPosts,
   handleGetSelfPosts,
   handleUpdateSelfProfile,
+  handleAddToSavedPosts,
+  handleDeleteSavedPosts,
 };

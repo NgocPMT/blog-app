@@ -431,9 +431,9 @@ const addToSavedPost = async (postId: number, userId: number) => {
   return savedPost;
 };
 
-const deleteSavedPost = async (id: number) => {
+const deleteSavedPost = async (postId: number, userId: number) => {
   const deletedPost = await prisma.readingList.delete({
-    where: { id },
+    where: { postId_userId: { postId, userId } },
   });
   return deletedPost;
 };
