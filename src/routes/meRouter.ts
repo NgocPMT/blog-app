@@ -21,9 +21,9 @@ meRouter.delete("/followings", () => {});
 
 meRouter.get("/saved-posts", meController.handleGetSelfSavedPosts);
 
-meRouter.post("/saved-post", meController.handleAddToSavedPosts);
+meRouter.post("/saved-posts", meController.handleAddToSavedPosts);
 
-meRouter.delete("/saved-post/:postId", meController.handleDeleteSavedPosts);
+meRouter.delete("/saved-posts/:postId", meController.handleDeleteSavedPosts);
 
 meRouter.get("/posts", meController.handleGetSelfPosts);
 
