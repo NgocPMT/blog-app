@@ -5,8 +5,6 @@ const userRouter = Router();
 
 userRouter.get("/user/:userId", userController.handleGetUserInformation);
 
-userRouter.get("/user/:userId/profile", userController.handleGetUserProfile);
-
 userRouter.get(
   "/user/:username/profile",
   userController.handleGetUserProfileByUsername
