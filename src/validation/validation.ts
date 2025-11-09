@@ -151,8 +151,8 @@ const usernameParamValidation: ValidationChain[] = [
     .notEmpty()
     .withMessage("Username must not be empty")
     .bail()
-    .custom(async (userId: string) => {
-      const user = await db.getUserById(parseInt(userId));
+    .custom(async (username: string) => {
+      const user = await db.getUserByUsername(username);
       if (!user) throw new Error("User doesn't exist");
     }),
 ];
