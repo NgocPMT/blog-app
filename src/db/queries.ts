@@ -313,8 +313,10 @@ const getUserNotifications = async (id: number) => {
   return notifications;
 };
 
-const getUserFollowers = async (id: number) => {
+const getUserFollowers = async (page: number, limit: number, id: number) => {
   const followers = await prisma.userFollows.findMany({
+    skip: page * limit,
+    take: limit,
     where: { followingId: id },
     include: {
       followedBy: {

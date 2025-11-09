@@ -85,8 +85,16 @@ const handleGetSelfFollowers = [
         .status(401)
         .json({ error: "User must logged in to do this action" });
 
+    const { page, limit } = req.query as {
+      page: string;
+      limit: string;
+    };
     const userId = (req.user as { id: number }).id;
-    const followers = await db.getUserFollowers(userId);
+    const followers = await db.getUserFollowers(
+      parseInt(page),
+      parseInt(limit),
+      userId
+    );
     return res.json(followers);
   },
 ];
