@@ -6,6 +6,8 @@ import {
   postQueryValidation,
   postIdValidation,
   profileValidation,
+  followingIdValidation,
+  followingIdParamValidation,
 } from "../validation/validation.js";
 import validate from "../middlewares/validate.js";
 
@@ -91,15 +93,76 @@ const handleGetSelfFollowers = [
 
 const handleGetSelfFollowings = [
   passport.authenticate("jwt", { session: false }),
+  ...validate(postQueryValidation),
   async (req: Request, res: Response) => {
     if (!req.user)
       return res
         .status(401)
         .json({ error: "User must logged in to do this action" });
 
+    const { page, limit } = req.query as {
+      page: string;
+      limit: string;
+    };
     const userId = (req.user as { id: number }).id;
-    const followings = await db.getUserFollowings(userId);
+    const followings = await db.getUserFollowings(
+      parseInt(page),
+      parseInt(limit),
+      userId
+    );
     return res.json(followings);
+  },
+];
+
+const handleFollowUser = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(followingIdValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
+
+    const { followingId } = req.body;
+    const userId = (req.user as { id: number }).id;
+
+    if (userId === parseInt(followingId))
+      return res.status(400).json({ error: "You can't follow yourself" });
+
+    const user = await db.getUserByFollowingIdAndUserId(
+      parseInt(followingId),
+      userId
+    );
+    if (user)
+      return res.status(400).json({ error: "You have followed this user" });
+
+    await db.followUser(parseInt(followingId), userId);
+    return res.status(201).json({ message: "Followed successfully" });
+  },
+];
+
+const handleUnfollowUser = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(followingIdParamValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
+
+    const { followingId } = req.params;
+
+    const userId = (req.user as { id: number }).id;
+
+    const user = await db.getUserByFollowingIdAndUserId(
+      parseInt(followingId),
+      userId
+    );
+    if (!user)
+      return res.status(400).json({ error: "You haven't followed this user" });
+
+    await db.unfollowUser(parseInt(followingId), userId);
+    return res.json({ message: "Unfollowed successfully" });
   },
 ];
 
@@ -225,4 +288,6 @@ export default {
   handleUpdateSelfProfile,
   handleAddToSavedPosts,
   handleDeleteSavedPosts,
+  handleFollowUser,
+  handleUnfollowUser,
 };

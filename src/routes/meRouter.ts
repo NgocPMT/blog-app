@@ -15,9 +15,9 @@ meRouter.get("/followers", meController.handleGetSelfFollowers);
 
 meRouter.get("/followings", meController.handleGetSelfFollowings);
 
-meRouter.post("/followings", () => {});
+meRouter.post("/followings", meController.handleFollowUser);
 
-meRouter.delete("/followings", () => {});
+meRouter.delete("/followings/:followingId", meController.handleUnfollowUser);
 
 meRouter.get("/saved-posts", meController.handleGetSelfSavedPosts);
 

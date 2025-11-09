@@ -329,6 +329,23 @@ const getUserFollowers = async (id: number) => {
   return followers;
 };
 
+const followUser = async (followingId: number, userId: number) => {
+  await prisma.userFollows.create({
+    data: {
+      followingId,
+      followedById: userId,
+    },
+  });
+};
+
+const unfollowUser = async (followingId: number, userId: number) => {
+  await prisma.userFollows.delete({
+    where: {
+      followingId_followedById: { followingId, followedById: userId },
+    },
+  });
+};
+
 const getUserFollowersByUsername = async (username: string) => {
   const followers = await prisma.userFollows.findMany({
     where: { following: { username } },
@@ -345,8 +362,10 @@ const getUserFollowersByUsername = async (username: string) => {
   return followers;
 };
 
-const getUserFollowings = async (id: number) => {
+const getUserFollowings = async (page: number, limit: number, id: number) => {
   const followings = await prisma.userFollows.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
     where: { followedById: id },
     include: {
       following: {
@@ -359,6 +378,16 @@ const getUserFollowings = async (id: number) => {
     },
   });
   return followings;
+};
+
+const getUserByFollowingIdAndUserId = async (
+  followingId: number,
+  userId: number
+) => {
+  const user = await prisma.userFollows.findUnique({
+    where: { followingId_followedById: { followingId, followedById: userId } },
+  });
+  return user || null;
 };
 
 const getUserFollowingsByUsername = async (username: string) => {
@@ -606,4 +635,7 @@ export default {
   unreactPost,
   getReactionTypeById,
   isReacted,
+  followUser,
+  unfollowUser,
+  getUserByFollowingIdAndUserId,
 };

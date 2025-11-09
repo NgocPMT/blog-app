@@ -146,6 +146,28 @@ const postIdValidation: ValidationChain[] = [
     }),
 ];
 
+const followingIdValidation: ValidationChain[] = [
+  body("followingId")
+    .isInt()
+    .withMessage("User ID must be an integer!")
+    .bail()
+    .custom(async (followingId: string) => {
+      const user = await db.getUserById(parseInt(followingId));
+      if (!user) throw new Error("User doesn't exist");
+    }),
+];
+
+const followingIdParamValidation: ValidationChain[] = [
+  param("followingId")
+    .isInt()
+    .withMessage("User ID must be an integer!")
+    .bail()
+    .custom(async (followingId: string) => {
+      const user = await db.getUserById(parseInt(followingId));
+      if (!user) throw new Error("User doesn't exist");
+    }),
+];
+
 const userIdParamValidation: ValidationChain[] = [
   param("userId")
     .isInt()
@@ -189,6 +211,8 @@ export {
   profileValidation,
   reactionValidation,
   postIdValidation,
+  followingIdValidation,
+  followingIdParamValidation,
 };
 
 export default {
@@ -201,4 +225,6 @@ export default {
   postIdValidation,
   profileValidation,
   reactionValidation,
+  followingIdValidation,
+  followingIdParamValidation,
 };
