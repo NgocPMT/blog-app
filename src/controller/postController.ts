@@ -10,7 +10,6 @@ import {
 import { validatePostAuthorization } from "../middlewares/validateAuthorization.js";
 import validate from "../middlewares/validate.js";
 import slugify from "slug";
-import { error } from "console";
 
 const handleGetPostBySlug: RequestHandler[] = [
   async (req: Request, res: Response) => {

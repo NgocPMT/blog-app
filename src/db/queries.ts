@@ -164,19 +164,21 @@ const reactPost = async (
   postId: number,
   userId: number
 ) => {
-  await prisma.postReaction.create({
+  const reaction = await prisma.postReaction.create({
     data: {
       postId,
       userId,
       reactionTypeId,
     },
   });
+  return reaction || null;
 };
 
 const unreactPost = async (postId: number, userId: number) => {
-  await prisma.postReaction.delete({
+  const reaction = await prisma.postReaction.delete({
     where: { userId_postId: { postId, userId } },
   });
+  return reaction || null;
 };
 
 const doesSlugExist = async (slug: string) => {
