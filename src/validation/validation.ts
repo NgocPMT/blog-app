@@ -74,6 +74,18 @@ const postValidation: ValidationChain[] = [
   body("content").trim().notEmpty().withMessage(`Post content ${emptyErr}`),
 ];
 
+const postUpdateValidation: ValidationChain[] = [
+  body("title")
+    .trim()
+    .notEmpty()
+    .withMessage(`Post title ${emptyErr}`)
+    .bail()
+    .isLength({ min: 2, max: 255 })
+    .withMessage("Post title must be from 2 to 255 characters!")
+    .bail(),
+  body("content").trim().notEmpty().withMessage(`Post content ${emptyErr}`),
+];
+
 const profileValidation: ValidationChain[] = [
   body("name")
     .trim()
@@ -234,6 +246,7 @@ export {
   followingIdValidation,
   followingIdParamValidation,
   slugParamValidation,
+  postUpdateValidation,
 };
 
 export default {
@@ -249,4 +262,5 @@ export default {
   followingIdValidation,
   followingIdParamValidation,
   slugParamValidation,
+  postUpdateValidation,
 };

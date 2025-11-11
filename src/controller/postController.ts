@@ -7,6 +7,7 @@ import {
   postQueryValidation,
   reactionValidation,
   slugParamValidation,
+  postUpdateValidation,
 } from "../validation/validation.js";
 import { validatePostAuthorization } from "../middlewares/validateAuthorization.js";
 import validate from "../middlewares/validate.js";
@@ -42,7 +43,7 @@ const handleUpdatePost: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
   validatePostAuthorization,
   ...validate(postParamValidation),
-  ...validate(postValidation),
+  ...validate(postUpdateValidation),
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.postId);
     const { title, content } = req.body;
