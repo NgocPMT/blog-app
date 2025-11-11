@@ -12,6 +12,8 @@ postRouter.post("/", postController.handleCreatePost);
 
 postRouter.get("/:slug", postController.handleGetPostBySlug);
 
+postRouter.post("/:slug/views", postController.handleViewPost);
+
 postRouter.put("/:postId", postController.handleUpdatePost);
 
 postRouter.delete("/:postId", postController.handleDeletePost);

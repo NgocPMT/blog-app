@@ -18,7 +18,7 @@ model User {
   accounts          Account[]
   comments          Comment[]
   CommentReaction   CommentReaction[]
-  Notification      Notification[]
+  notifications     Notification[]      @relation("UserAsOwner")
   posts             Post[]
   PostReaction      PostReaction[]
   PostView          PostView[]
@@ -83,7 +83,7 @@ model Notification {
   relatedId Int?
   createdAt DateTime         @default(now())
   actorId   Int
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User             @relation("UserAsOwner", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
 }

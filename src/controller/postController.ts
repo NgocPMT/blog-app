@@ -6,6 +6,7 @@ import {
   postParamValidation,
   postQueryValidation,
   reactionValidation,
+  slugParamValidation,
 } from "../validation/validation.js";
 import { validatePostAuthorization } from "../middlewares/validateAuthorization.js";
 import validate from "../middlewares/validate.js";
@@ -39,12 +40,14 @@ const handleGetPostsPagination: RequestHandler[] = [
 
 const handleUpdatePost: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
+  validatePostAuthorization,
   ...validate(postParamValidation),
   ...validate(postValidation),
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.postId);
     const { title, content } = req.body;
-    await db.updatePost({ id, title, content });
+    const parsedContent = JSON.parse(content);
+    await db.updatePost({ id, title, content: parsedContent });
     return res.json({ message: "Update post successfully" });
   },
 ];
@@ -66,7 +69,7 @@ const handleCreatePost = [
   ...validate(postValidation),
   async (req: Request, res: Response) => {
     if (!req.user)
-      return res.status(403).json({ error: "You must login to create a post" });
+      return res.status(401).json({ error: "You must login to create a post" });
 
     const { title, content, coverImageUrl } = req.body;
 
@@ -109,7 +112,9 @@ const handleReactPost = [
   ...validate(reactionValidation),
   async (req: Request, res: Response) => {
     if (!req.user)
-      return res.status(403).json({ error: "You must login to create a post" });
+      return res
+        .status(401)
+        .json({ error: "You must login to react on a post" });
 
     const { postId } = req.params;
     const { reactionTypeId } = req.body;
@@ -146,13 +151,42 @@ const handleUnreactPost = [
   ...validate(postParamValidation),
   async (req: Request, res: Response) => {
     if (!req.user)
-      return res.status(403).json({ error: "You must login to create a post" });
+      return res
+        .status(401)
+        .json({ error: "You must login to unreact a post" });
 
     const { postId } = req.params;
 
     const userId = (req.user as { id: number }).id;
     const unreacted = await db.unreactPost(parseInt(postId), userId);
     res.json({ message: "Unreacted successfully", unreacted });
+  },
+];
+
+const handleViewPost = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(slugParamValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user)
+      return res.status(401).json({ error: "You must login to create a post" });
+
+    const { slug } = req.params;
+
+    const userId = (req.user as { id: number }).id;
+    const isViewed = await db.isViewed({ slug, userId });
+
+    if (isViewed)
+      return res
+        .status(200)
+        .json({ message: "This user have viewed this post already" });
+
+    const postView = await db.createPostView({
+      slug,
+      userId,
+    });
+    if (!postView)
+      return res.status(500).json({ error: "Something went wrong" });
+    res.json({ message: "added view successfully", postView });
   },
 ];
 
@@ -164,4 +198,5 @@ export default {
   handleGetPostsPagination,
   handleReactPost,
   handleUnreactPost,
+  handleViewPost,
 };

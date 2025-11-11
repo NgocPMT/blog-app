@@ -429,6 +429,49 @@ const getUserFollowersByUsername = async (username: string) => {
   return followers;
 };
 
+const createPostView = async ({
+  slug,
+  userId,
+}: {
+  slug: string;
+  userId: number;
+}) => {
+  const post = await prisma.post.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!post) return null;
+
+  const postView = await prisma.postView.create({
+    data: {
+      postId: post.id,
+      userId,
+    },
+  });
+  return postView;
+};
+
+const isViewed = async ({ slug, userId }: { slug: string; userId: number }) => {
+  const post = await prisma.post.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!post) return false;
+
+  const postView = await prisma.postView.findUnique({
+    where: {
+      postId_userId: { postId: post.id, userId },
+    },
+  });
+  return !!postView;
+};
+
 const getUserFollowings = async (page: number, limit: number, id: number) => {
   const followings = await prisma.userFollows.findMany({
     skip: (page - 1) * limit,
@@ -646,12 +689,34 @@ const createUser = async (user: User) => {
 const getCommentsByPostId = async (postId: number) => {
   const comments = await prisma.comment.findMany({
     where: { postId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          Profile: true,
+        },
+      },
+    },
   });
   return comments;
 };
 
 const getCommentById = async (id: number) => {
-  const comment = await prisma.comment.findUnique({ where: { id } });
+  const comment = await prisma.comment.findUnique({
+    where: { id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          Profile: true,
+        },
+      },
+    },
+  });
   return comment ?? null;
 };
 
@@ -736,4 +801,6 @@ export default {
   getReactionTypes,
   createNotification,
   getUserByPostId,
+  createPostView,
+  isViewed,
 };

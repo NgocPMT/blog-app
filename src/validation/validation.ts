@@ -168,6 +168,17 @@ const followingIdParamValidation: ValidationChain[] = [
     }),
 ];
 
+const slugParamValidation: ValidationChain[] = [
+  param("slug")
+    .notEmpty()
+    .withMessage("Slug must not be empty")
+    .bail()
+    .custom(async (slug: string) => {
+      const post = await db.getPostBySlug(slug);
+      if (!post) throw new Error("Post doesn't exist");
+    }),
+];
+
 const userIdParamValidation: ValidationChain[] = [
   param("userId")
     .isInt()
@@ -222,6 +233,7 @@ export {
   postIdValidation,
   followingIdValidation,
   followingIdParamValidation,
+  slugParamValidation,
 };
 
 export default {
@@ -236,4 +248,5 @@ export default {
   reactionValidation,
   followingIdValidation,
   followingIdParamValidation,
+  slugParamValidation,
 };
