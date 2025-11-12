@@ -51,7 +51,6 @@ const getPublishedPosts = async (
         p.slug, 
         p."createdAt",
         p."userId",
-        p."publicationId",
         json_build_object(
           'id', u.id,
           'email', u.email,
@@ -64,11 +63,6 @@ const getPublishedPosts = async (
           WHERE pr."postId" = p.id
         ), '[]'::json) as "PostReaction",
         COALESCE((
-          SELECT json_agg(pt.*)
-          FROM "PostTopic" pt
-          WHERE pt."postId" = p.id
-        ), '[]'::json) as "PostTopic",
-        COALESCE((
           SELECT json_agg(pv.*)
           FROM "PostView" pv
           WHERE pv."postId" = p.id
@@ -78,11 +72,6 @@ const getPublishedPosts = async (
           FROM "Comment" c
           WHERE c."postId" = p.id
         ), '[]'::json) as comments,
-        (
-          SELECT row_to_json(pub.*)
-          FROM "Publication" pub
-          WHERE pub.id = p."publicationId"
-        ) as publication,
         -- Calculate relevance score using TEXT fields only
         (
           similarity(p.title::text, ${searchQuery}) * 3 +
@@ -106,7 +95,6 @@ const getPublishedPosts = async (
     return posts;
   }
 
-  // Regular query without search
   return prisma.post.findMany({
     skip: (page - 1) * limit,
     take: limit,
@@ -765,6 +753,70 @@ const deleteComment = async (id: number) => {
   return comment;
 };
 
+const getReportedPosts = async (page?: number, limit?: number) => {
+  const skip = page && limit ? page * limit : 0;
+  const take = limit || undefined;
+
+  const reportedPosts = await prisma.reportedPosts.findMany({
+    skip,
+    take,
+    include: {
+      post: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          coverImageUrl: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  });
+  return reportedPosts;
+};
+
+const getUsers = async (page?: number, limit?: number) => {
+  const skip = page && limit ? page * limit : 0;
+  const take = limit || undefined;
+
+  const users = await prisma.user.findMany({
+    skip,
+    take,
+    where: { role: null },
+    omit: { password: true },
+  });
+
+  return users;
+};
+
+const createReportedPost = async ({
+  postId,
+  userId,
+}: {
+  postId: number;
+  userId: number;
+}) => {
+  const createdReportedPost = await prisma.reportedPosts.create({
+    data: {
+      postId,
+      userId,
+    },
+  });
+  return createdReportedPost || null;
+};
+
 export default {
   getPublishedPosts,
   getPostById,
@@ -811,4 +863,7 @@ export default {
   getUserByPostId,
   createPostView,
   isViewed,
+  getReportedPosts,
+  createReportedPost,
+  getUsers,
 };

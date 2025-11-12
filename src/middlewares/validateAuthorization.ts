@@ -18,6 +18,18 @@ const validateAuthorization = async (
   next();
 };
 
+const validateAdminAuthorization = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userRole = (req.user as { role: string }).role;
+  if (userRole !== "admin") {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  next();
+};
+
 const validateViewAuthorization = async (
   req: Request,
   res: Response,
@@ -76,10 +88,12 @@ export {
   validateCommentAuthorization,
   validateAuthorization,
   validateViewAuthorization,
+  validateAdminAuthorization,
 };
 export default {
   validatePostAuthorization,
   validateCommentAuthorization,
   validateAuthorization,
   validateViewAuthorization,
+  validateAdminAuthorization,
 };

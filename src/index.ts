@@ -11,6 +11,7 @@ import cors from "cors";
 import imageRouter from "./routes/imageRouter.js";
 import meRouter from "./routes/meRouter.js";
 import reactionRouter from "./routes/reactionRouter.js";
+import adminRouter from "./routes/adminRouter.js";
 
 const app: Express = express();
 
@@ -36,6 +37,7 @@ app.use("/users", userRouter);
 app.use("/me", meRouter);
 app.use("/images", imageRouter);
 app.use("/reactions", reactionRouter);
+app.use("/admin", adminRouter);
 app.use(routeErrorHandling);
 app.use(internalErrorHandling);
 
