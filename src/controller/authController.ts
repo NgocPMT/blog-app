@@ -35,7 +35,7 @@ const handleLogin: RequestHandler[] = [
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
-      return res.status(400).json({ error: errors.array()[0] });
+      return res.status(400).json({ error: errors.array()[0].msg });
 
     passport.authenticate(
       "local",
@@ -44,18 +44,18 @@ const handleLogin: RequestHandler[] = [
         if (err || !user)
           return res
             .status(400)
-            .json({ message: info?.message ?? "Something is not right", user });
+            .json({ error: info?.message ?? "Something is not right", user });
 
         req.login(user, { session: false }, (loginErr: Error) => {
           if (loginErr)
-            return res.status(500).json({ message: loginErr.message });
+            return res.status(500).json({ error: loginErr.message });
 
           const token = jwt.sign(
             { username: user.username, id: user.id },
             process.env.JWT_SECRET_KEY as string,
             { expiresIn: "8h" }
           );
-          return res.json({ user, token });
+          return res.json({ message: "Logged in successfully", user, token });
         });
       }
     )(req, res);
@@ -69,9 +69,7 @@ const validateToken: RequestHandler[] = [
       { session: false },
       (err: Error | null, user: User) => {
         if (err || !user) {
-          return res
-            .status(401)
-            .json({ valid: false, message: "Unauthorized" });
+          return res.json({ valid: false, message: "Unauthorized" });
         }
         req.user = user;
         next();
