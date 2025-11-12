@@ -10,6 +10,8 @@ postRouter.get("/", postController.handleGetPostsPagination);
 
 postRouter.post("/", postController.handleCreatePost);
 
+postRouter.post("/drafts", postController.handleSavePostToDrafts);
+
 postRouter.get("/:slug", postController.handleGetPostBySlug);
 
 postRouter.post("/:slug/views", postController.handleViewPost);

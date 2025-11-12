@@ -8,8 +8,12 @@ import {
   reactionValidation,
   slugParamValidation,
   postUpdateValidation,
+  postSavingValidation,
 } from "../validation/validation.js";
-import { validatePostAuthorization } from "../middlewares/validateAuthorization.js";
+import {
+  validatePostAuthorization,
+  validateViewAuthorization,
+} from "../middlewares/validateAuthorization.js";
 import validate from "../middlewares/validate.js";
 import slugify from "slug";
 
@@ -46,9 +50,33 @@ const handleUpdatePost: RequestHandler[] = [
   ...validate(postUpdateValidation),
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.postId);
-    const { title, content } = req.body;
+    const { title, content, coverImageUrl } = req.body;
     const parsedContent = JSON.parse(content);
-    await db.updatePost({ id, title, content: parsedContent });
+
+    const userId = (req.user as { id: number }).id;
+
+    const post = await db.getPostByTitleAndUserId(title, userId);
+
+    if (post)
+      return res
+        .status(400)
+        .json({ error: "Post with this title already existed on this user" });
+
+    let slug = slugify(title, { lower: true });
+
+    const isSlugUnique = !db.doesSlugExist(slug);
+
+    if (!isSlugUnique) {
+      slug = `${slug}-${Date.now()}`;
+    }
+
+    await db.updatePost({
+      id,
+      title,
+      content: parsedContent,
+      slug,
+      coverImageUrl,
+    });
     return res.json({ message: "Update post successfully" });
   },
 ];
@@ -104,6 +132,67 @@ const handleCreatePost = [
       });
     });
     res.status(201).json({ message: "Create post successfully" });
+  },
+];
+
+const handleSavePostToDrafts = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(postSavingValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user)
+      return res.status(401).json({ error: "You must login to save a post" });
+
+    const { id, content, coverImageUrl } = req.body;
+
+    let { title } = req.body;
+
+    const parsedContent = JSON.parse(content);
+
+    if (!title) {
+      title = "Untitled Draft";
+    }
+
+    let slug = slugify(title, { lower: true });
+
+    const isSlugUnique = !db.doesSlugExist(slug);
+
+    if (!isSlugUnique) {
+      slug = `${slug}-${Date.now()}`;
+    }
+
+    const userId = (req.user as { id: number }).id;
+
+    const post = await db.getPostByTitleAndUserId(title, userId);
+
+    if (post)
+      return res
+        .status(400)
+        .json({ error: "Post with this title already existed on this user" });
+
+    if (id) {
+      const updatedPost = await db.updatePost({
+        id,
+        title,
+        content: parsedContent,
+        slug,
+        coverImageUrl,
+      });
+      return res
+        .status(200)
+        .json({ message: "Saved post to drafts successfully", updatedPost });
+    }
+
+    const createdPost = await db.createPost({
+      title,
+      content: parsedContent,
+      slug,
+      status: "DRAFT",
+      userId,
+      coverImageUrl,
+    });
+    res
+      .status(201)
+      .json({ message: "Saved post to drafts successfully", createdPost });
   },
 ];
 
@@ -166,6 +255,7 @@ const handleUnreactPost = [
 
 const handleViewPost = [
   passport.authenticate("jwt", { session: false }),
+  validateViewAuthorization,
   ...validate(slugParamValidation),
   async (req: Request, res: Response) => {
     if (!req.user)
@@ -200,4 +290,5 @@ export default {
   handleReactPost,
   handleUnreactPost,
   handleViewPost,
+  handleSavePostToDrafts,
 };

@@ -206,10 +206,14 @@ const updatePost = async ({
   id,
   title,
   content,
+  slug,
+  coverImageUrl,
 }: {
   id: number;
   title: string;
   content: string;
+  slug: string;
+  coverImageUrl: string;
 }) => {
   const post = await prisma.post.update({
     where: {
@@ -218,6 +222,8 @@ const updatePost = async ({
     data: {
       title,
       content,
+      slug,
+      coverImageUrl,
     },
   });
   return post;
@@ -602,6 +608,7 @@ const getUserPosts = async (page: number, limit: number, userId: number) => {
     select: {
       id: true,
       title: true,
+      status: true,
       slug: true,
       coverImageUrl: true,
       createdAt: true,

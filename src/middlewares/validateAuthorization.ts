@@ -13,6 +13,18 @@ const validateAuthorization = async (
   next();
 };
 
+const validateViewAuthorization = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = parseInt(req.params.userId);
+  const currentUserId = (req.user as { id: number }).id;
+  if (userId === currentUserId)
+    return res.json({ message: "The current user is also the author" });
+  next();
+};
+
 const validatePostAuthorization = async (
   req: Request,
   res: Response,
@@ -48,9 +60,11 @@ export {
   validatePostAuthorization,
   validateCommentAuthorization,
   validateAuthorization,
+  validateViewAuthorization,
 };
 export default {
   validatePostAuthorization,
   validateCommentAuthorization,
   validateAuthorization,
+  validateViewAuthorization,
 };

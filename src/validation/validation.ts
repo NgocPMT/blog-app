@@ -50,10 +50,13 @@ const loginValidation: ValidationChain[] = [
     .bail()
     .custom(async (username) => {
       const user = await db.getUserByUsername(username);
-      if (!user) throw new Error("username or password is incorrect");
+      if (!user) throw new Error("Username or password is incorrect");
       if (!user.isActive) throw new Error("this account have been banned");
     }),
-  body("password").trim().notEmpty().withMessage(`Password ${emptyErr}`),
+  body("password")
+    .trim()
+    .notEmpty()
+    .withMessage(`Username or password ${emptyErr}`),
 ];
 
 const postValidation: ValidationChain[] = [
@@ -72,6 +75,17 @@ const postValidation: ValidationChain[] = [
         throw new Error("Post with this title already exists on this user");
     }),
   body("content").trim().notEmpty().withMessage(`Post content ${emptyErr}`),
+];
+
+const postSavingValidation: ValidationChain[] = [
+  body("id")
+    .optional()
+    .isInt()
+    .bail()
+    .custom(async (postId: string) => {
+      const post = await db.getPostById(parseInt(postId));
+      if (!post) throw new Error("Post doesn't exist");
+    }),
 ];
 
 const postUpdateValidation: ValidationChain[] = [
@@ -247,6 +261,7 @@ export {
   followingIdParamValidation,
   slugParamValidation,
   postUpdateValidation,
+  postSavingValidation,
 };
 
 export default {
@@ -263,4 +278,5 @@ export default {
   followingIdParamValidation,
   slugParamValidation,
   postUpdateValidation,
+  postSavingValidation,
 };
