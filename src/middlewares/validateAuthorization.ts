@@ -8,6 +8,11 @@ const validateAuthorization = async (
 ) => {
   const userId = parseInt(req.params.userId);
   const currentUserId = (req.user as { id: number }).id;
+  const userRole = (req.user as { id: number; role: string }).role;
+  if (userRole === "admin") {
+    next();
+    return;
+  }
   if (userId !== currentUserId)
     return res.status(403).json({ error: "Forbidden" });
   next();
@@ -34,6 +39,11 @@ const validatePostAuthorization = async (
   const post = await db.getPostById(id);
   if (!post) return res.status(404).json({ error: "Post not found" });
   const userId = (req.user as { id: number }).id;
+  const userRole = (req.user as { id: number; role: string }).role;
+  if (userRole === "admin") {
+    next();
+    return;
+  }
   if (post.userId !== userId)
     return res.status(403).json({ error: "Forbidden" });
   next();
@@ -50,7 +60,12 @@ const validateCommentAuthorization = async (
   const post = await db.getPostById(parseInt(postId));
   if (!post) return res.status(404).json({ error: "Post not found" });
 
-  const userId = (req.user as { id: number }).id;
+  const userId = (req.user as { id: number; role: string }).id;
+  const userRole = (req.user as { id: number; role: string }).role;
+  if (userRole === "admin") {
+    next();
+    return;
+  }
   if (comment.userId !== userId && post.userId !== userId)
     return res.status(403).json({ error: "Forbidden" });
   next();

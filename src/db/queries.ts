@@ -118,10 +118,8 @@ const getPublishedPosts = async (
         },
       },
       PostReaction: true,
-      PostTopic: true,
       PostView: true,
       comments: true,
-      publication: true,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -143,7 +141,6 @@ const getPostBySlug = async (slug: string) => {
         },
       },
       PostView: true,
-      PostTopic: true,
       comments: true,
     },
   });
@@ -247,10 +244,8 @@ const getPostById = async (id: number) => {
         },
       },
       PostReaction: true,
-      PostTopic: true,
       PostView: true,
       comments: true,
-      publication: true,
     },
   });
   return post ?? null;
@@ -621,10 +616,8 @@ const getUserPosts = async (page: number, limit: number, userId: number) => {
         },
       },
       PostReaction: true,
-      PostTopic: true,
       PostView: true,
       comments: true,
-      publication: true,
     },
   });
   return posts;
@@ -648,10 +641,8 @@ const getUserPostsByUsername = async (username: string) => {
         },
       },
       PostReaction: true,
-      PostTopic: true,
       PostView: true,
       comments: true,
-      publication: true,
     },
   });
   return posts;
