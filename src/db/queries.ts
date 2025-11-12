@@ -566,11 +566,20 @@ const getUserSavedPosts = async (page: number, limit: number, id: number) => {
         select: {
           id: true,
           title: true,
+          content: true,
           slug: true,
           coverImageUrl: true,
           createdAt: true,
           PostReaction: true,
           comments: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              Profile: true,
+            },
+          },
         },
       },
     },
@@ -603,6 +612,7 @@ const getUserPosts = async (page: number, limit: number, userId: number) => {
     select: {
       id: true,
       title: true,
+      content: true,
       status: true,
       slug: true,
       coverImageUrl: true,
