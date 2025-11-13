@@ -383,7 +383,7 @@ const createNotification = async (notification: Notification) => {
 };
 
 const getUserFollowers = async (id: number, page?: number, limit?: number) => {
-  const skip = page && limit ? page * limit : 0;
+  const skip = page && limit ? (page - 1) * limit : 0;
   const take = limit || undefined;
 
   const followers = await prisma.userFollows.findMany({
@@ -481,7 +481,7 @@ const isViewed = async ({ slug, userId }: { slug: string; userId: number }) => {
 };
 
 const getUserFollowings = async (id: number, page?: number, limit?: number) => {
-  const skip = page && limit ? page * limit : 0;
+  const skip = page && limit ? (page - 1) * limit : 0;
   const take = limit || undefined;
   const followings = await prisma.userFollows.findMany({
     skip,
@@ -847,7 +847,7 @@ const deleteComment = async (id: number) => {
 };
 
 const getReportedPosts = async (page?: number, limit?: number) => {
-  const skip = page && limit ? page * limit : 0;
+  const skip = page && limit ? (page - 1) * limit : 0;
   const take = limit || undefined;
 
   const reportedPosts = await prisma.reportedPosts.findMany({
@@ -881,7 +881,7 @@ const getReportedPosts = async (page?: number, limit?: number) => {
 };
 
 const getUsers = async (page?: number, limit?: number) => {
-  const skip = page && limit ? page * limit : 0;
+  const skip = page && limit ? (page - 1) * limit : 0;
   const take = limit || undefined;
 
   const users = await prisma.user.findMany({
