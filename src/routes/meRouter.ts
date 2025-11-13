@@ -27,4 +27,8 @@ meRouter.delete("/saved-posts/:postId", meController.handleDeleteSavedPosts);
 
 meRouter.get("/posts", meController.handleGetSelfPosts);
 
+meRouter.get("/published-posts", meController.handleGetSelfPublishedPosts);
+
+meRouter.get("/draft-posts", meController.handleGetSelfDraftPosts);
+
 export default meRouter;

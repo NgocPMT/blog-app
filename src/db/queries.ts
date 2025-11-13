@@ -316,6 +316,8 @@ const updateProfile = async (profile: Profile) => {
 const getUserNotifications = async (id: number) => {
   const notifications = await prisma.notification.findMany({
     where: { userId: id },
+    take: 15,
+    orderBy: { createdAt: "desc" },
     include: {
       user: {
         select: {
@@ -328,6 +330,23 @@ const getUserNotifications = async (id: number) => {
     },
   });
   return notifications;
+};
+
+const markFirst15NotificationsAsRead = async (id: number) => {
+  const first15 = await prisma.notification.findMany({
+    take: 15,
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+
+  await Promise.all(
+    first15.map((notification) =>
+      prisma.notification.update({
+        where: { id: notification.id },
+        data: { isRead: true },
+      })
+    )
+  );
 };
 
 const createNotification = async (notification: Notification) => {
@@ -592,6 +611,72 @@ const deleteSavedPost = async (postId: number, userId: number) => {
   return deletedPost;
 };
 
+const getUserPublishedPosts = async (
+  page: number,
+  limit: number,
+  userId: number
+) => {
+  const posts = await prisma.post.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    where: { userId, status: "PUBLISHED" },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      status: true,
+      slug: true,
+      coverImageUrl: true,
+      createdAt: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          Profile: true,
+        },
+      },
+      PostReaction: true,
+      PostView: true,
+      comments: true,
+    },
+  });
+  return posts;
+};
+
+const getUserDraftPosts = async (
+  page: number,
+  limit: number,
+  userId: number
+) => {
+  const posts = await prisma.post.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    where: { userId, status: "DRAFT" },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      status: true,
+      slug: true,
+      coverImageUrl: true,
+      createdAt: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          Profile: true,
+        },
+      },
+      PostReaction: true,
+      PostView: true,
+      comments: true,
+    },
+  });
+  return posts;
+};
+
 const getUserPosts = async (page: number, limit: number, userId: number) => {
   const posts = await prisma.post.findMany({
     skip: (page - 1) * limit,
@@ -817,6 +902,19 @@ const createReportedPost = async ({
   return createdReportedPost || null;
 };
 
+const deleteReportedPost = async ({
+  postId,
+  userId,
+}: {
+  postId: number;
+  userId: number;
+}) => {
+  const deletedReportedPost = await prisma.reportedPosts.delete({
+    where: { postId_userId: { postId, userId } },
+  });
+  return deletedReportedPost || null;
+};
+
 export default {
   getPublishedPosts,
   getPostById,
@@ -865,5 +963,9 @@ export default {
   isViewed,
   getReportedPosts,
   createReportedPost,
+  deleteReportedPost,
   getUsers,
+  markFirst15NotificationsAsRead,
+  getUserDraftPosts,
+  getUserPublishedPosts,
 };

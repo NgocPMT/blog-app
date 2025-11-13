@@ -308,6 +308,52 @@ const handleUpdateSelfProfile = [
   },
 ];
 
+const handleGetSelfPublishedPosts = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(postQueryValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
+
+    const { page, limit } = req.query as {
+      page: string;
+      limit: string;
+    };
+    const userId = (req.user as { id: number }).id;
+    const posts = await db.getUserPublishedPosts(
+      parseInt(page),
+      parseInt(limit),
+      userId
+    );
+    return res.json(posts);
+  },
+];
+
+const handleGetSelfDraftPosts = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(postQueryValidation),
+  async (req: Request, res: Response) => {
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
+
+    const { page, limit } = req.query as {
+      page: string;
+      limit: string;
+    };
+    const userId = (req.user as { id: number }).id;
+    const posts = await db.getUserDraftPosts(
+      parseInt(page),
+      parseInt(limit),
+      userId
+    );
+    return res.json(posts);
+  },
+];
+
 export default {
   handleGetSelfInformation,
   handleGetSelfNotifications,
@@ -322,4 +368,6 @@ export default {
   handleDeleteSavedPosts,
   handleFollowUser,
   handleUnfollowUser,
+  handleGetSelfDraftPosts,
+  handleGetSelfPublishedPosts,
 };
