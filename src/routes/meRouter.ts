@@ -9,6 +9,8 @@ meRouter.put("/profile", meController.handleUpdateSelfProfile);
 
 meRouter.get("/notifications", meController.handleGetSelfNotifications);
 
+meRouter.put("/notifications/read", meController.handleMarkSelfNotification);
+
 meRouter.get("/statistics", meController.handleGetSelfStatistics);
 
 meRouter.get("/followers", meController.handleGetSelfFollowers);

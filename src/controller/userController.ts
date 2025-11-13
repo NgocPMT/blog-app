@@ -2,6 +2,7 @@ import passport from "passport";
 import db from "../db/queries.js";
 import type { Request, RequestHandler, Response } from "express";
 import {
+  postQueryValidation,
   userIdParamValidation,
   usernameParamValidation,
 } from "../validation/validation.js";
@@ -32,9 +33,23 @@ const handleGetUserProfile: RequestHandler[] = [
 const handleGetUserPostsByUsername: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
   ...validate(usernameParamValidation),
+  ...validate(postQueryValidation),
   async (req: Request, res: Response) => {
+    if (!req.user)
+      return res
+        .status(401)
+        .json({ error: "User must logged in to do this action" });
+
+    const { page, limit } = req.query as {
+      page: string;
+      limit: string;
+    };
     const username = req.params.username;
-    const posts = await db.getUserPostsByUsername(username);
+    const posts = await db.getUserPostsByUsername(
+      parseInt(page),
+      parseInt(limit),
+      username
+    );
     return res.json(posts);
   },
 ];

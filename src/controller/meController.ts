@@ -354,6 +354,15 @@ const handleGetSelfDraftPosts = [
   },
 ];
 
+const handleMarkSelfNotification = [
+  passport.authenticate("jwt", { session: false }),
+  async (req: Request, res: Response) => {
+    const userId = (req.user as { id: number }).id;
+    await db.markFirst15NotificationsAsRead(userId);
+    return res.json({ message: "Mark as all read successfully" });
+  },
+];
+
 export default {
   handleGetSelfInformation,
   handleGetSelfNotifications,
@@ -370,4 +379,5 @@ export default {
   handleUnfollowUser,
   handleGetSelfDraftPosts,
   handleGetSelfPublishedPosts,
+  handleMarkSelfNotification,
 };

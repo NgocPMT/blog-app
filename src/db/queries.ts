@@ -480,10 +480,12 @@ const isViewed = async ({ slug, userId }: { slug: string; userId: number }) => {
   return !!postView;
 };
 
-const getUserFollowings = async (page: number, limit: number, id: number) => {
+const getUserFollowings = async (id: number, page?: number, limit?: number) => {
+  const skip = page && limit ? page * limit : 0;
+  const take = limit || undefined;
   const followings = await prisma.userFollows.findMany({
-    skip: (page - 1) * limit,
-    take: limit,
+    skip,
+    take,
     where: { followedById: id },
     include: {
       following: {
@@ -706,8 +708,14 @@ const getUserPosts = async (page: number, limit: number, userId: number) => {
   return posts;
 };
 
-const getUserPostsByUsername = async (username: string) => {
+const getUserPostsByUsername = async (
+  page: number,
+  limit: number,
+  username: string
+) => {
   const posts = await prisma.post.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
     where: { user: { username } },
     select: {
       id: true,
