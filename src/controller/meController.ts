@@ -20,7 +20,6 @@ const handleGetSelfProfile = [
         .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
-    console.log(userId);
     const profile = await db.getUserProfile(userId);
     return res.json(profile);
   },

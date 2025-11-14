@@ -102,7 +102,7 @@ const validateAdmin: RequestHandler[] = [
   },
   async (req: Request, res: Response) => {
     const role = (req.user as { role: string }).role;
-    if (role.toLowerCase() === "admin") {
+    if (role && role === "admin") {
       return res.json({ valid: true });
     }
     return res.json({ valid: false });
