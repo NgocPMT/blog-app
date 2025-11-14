@@ -30,13 +30,17 @@ const getReportedPosts = [
   validateAdminAuthorization,
   ...validate(postQueryValidation),
   async (req: Request, res: Response) => {
-    const { page, limit } = req.query as {
+    const { page, limit, titleSearch, userSearch } = req.query as {
       page?: string;
       limit?: string;
+      titleSearch?: string;
+      userSearch?: string;
     };
     const reportedPosts = await db.getReportedPosts(
       page ? parseInt(page) : undefined,
-      limit ? parseInt(limit) : undefined
+      limit ? parseInt(limit) : undefined,
+      titleSearch,
+      userSearch
     );
 
     res.json({ reportedPosts });

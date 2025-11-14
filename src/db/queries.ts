@@ -293,6 +293,9 @@ const getUserProfile = async (id: number) => {
 const getUserProfileByUsername = async (username: string) => {
   const user = await prisma.profile.findFirst({
     where: { user: { username } },
+    include: {
+      user: { select: { id: true, username: true } },
+    },
   });
   return user ?? null;
 };
@@ -847,7 +850,12 @@ const deleteComment = async (id: number) => {
   return comment;
 };
 
-const getReportedPosts = async (page?: number, limit?: number) => {
+const getReportedPosts = async (
+  page?: number,
+  limit?: number,
+  titleSearchQuery?: string,
+  userSearchQuery?: string
+) => {
   const skip = page && limit ? (page - 1) * limit : 0;
   const take = limit || undefined;
 
@@ -855,6 +863,24 @@ const getReportedPosts = async (page?: number, limit?: number) => {
     skip,
     take,
     orderBy: { createdAt: "desc" },
+    where: {
+      user: {
+        username: userSearchQuery
+          ? {
+              contains: userSearchQuery,
+              mode: "insensitive",
+            }
+          : undefined,
+      },
+      post: {
+        title: titleSearchQuery
+          ? {
+              contains: titleSearchQuery,
+              mode: "insensitive",
+            }
+          : undefined,
+      },
+    },
     include: {
       post: {
         select: {
