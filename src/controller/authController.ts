@@ -11,6 +11,7 @@ interface User {
   username: string;
   email: string;
   password: string;
+  role: string;
 }
 
 const handleRegister: RequestHandler[] = [
@@ -51,7 +52,11 @@ const handleLogin: RequestHandler[] = [
             return res.status(500).json({ error: loginErr.message });
 
           const token = jwt.sign(
-            { username: user.username, id: user.id },
+            {
+              username: user.username,
+              id: user.id,
+              role: user.role,
+            },
             process.env.JWT_SECRET_KEY as string,
             { expiresIn: "8h" }
           );

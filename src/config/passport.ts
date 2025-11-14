@@ -34,7 +34,11 @@ passport.use(
       if (!match)
         return done(null, false, { message: "Password is incorrect." });
 
-      return done(null, { id: user.id, username: user.username });
+      return done(null, {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      });
     } catch (error) {
       done(error);
     }
