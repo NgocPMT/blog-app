@@ -61,6 +61,25 @@ const validatePostAuthorization = async (
   next();
 };
 
+const validatePostAuthorizationBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const slug = req.params.slug;
+  const post = await db.getPostBySlug(slug);
+  if (!post) return res.status(404).json({ error: "Post not found" });
+  const userId = (req.user as { id: number }).id;
+  const userRole = (req.user as { id: number; role: string }).role;
+  if (userRole === "admin") {
+    next();
+    return;
+  }
+  if (post.userId !== userId)
+    return res.status(403).json({ error: "Forbidden" });
+  next();
+};
+
 const validateCommentAuthorization = async (
   req: Request,
   res: Response,
@@ -89,6 +108,7 @@ export {
   validateAuthorization,
   validateViewAuthorization,
   validateAdminAuthorization,
+  validatePostAuthorizationBySlug,
 };
 export default {
   validatePostAuthorization,
@@ -96,4 +116,5 @@ export default {
   validateAuthorization,
   validateViewAuthorization,
   validateAdminAuthorization,
+  validatePostAuthorizationBySlug,
 };

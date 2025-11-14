@@ -11,6 +11,7 @@ import {
   slugParamValidation,
 } from "../validation/validation.js";
 import validate from "../middlewares/validate.js";
+import { validatePostAuthorizationBySlug } from "../middlewares/validateAuthorization.js";
 
 const handleGetSelfProfile = [
   passport.authenticate("jwt", { session: false }),
@@ -365,6 +366,7 @@ const handleMarkSelfNotification = [
 
 const handlePublishPost = [
   passport.authenticate("jwt", { session: false }),
+  validatePostAuthorizationBySlug,
   ...validate(slugParamValidation),
   async (req: Request, res: Response) => {
     const { slug } = req.params;
