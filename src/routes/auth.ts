@@ -9,4 +9,6 @@ auth.post("/login", authController.handleLogin);
 
 auth.get("/validate-token", authController.validateToken);
 
+auth.get("/validate-admin", authController.validateAdmin);
+
 export default auth;

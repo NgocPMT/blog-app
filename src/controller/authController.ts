@@ -81,4 +81,27 @@ const validateToken: RequestHandler[] = [
   },
 ];
 
-export default { handleRegister, handleLogin, validateToken };
+const validateAdmin: RequestHandler[] = [
+  (req, res, next) => {
+    passport.authenticate(
+      "jwt",
+      { session: false },
+      (err: Error | null, user: User) => {
+        if (err || !user) {
+          return res.json({ valid: false, message: "Unauthorized" });
+        }
+        req.user = user;
+        next();
+      }
+    )(req, res, next);
+  },
+  async (req: Request, res: Response) => {
+    const role = (req.user as { role: string }).role;
+    if (role.toLowerCase() === "admin") {
+      return res.json({ valid: true });
+    }
+    return res.json({ valid: false });
+  },
+];
+
+export default { handleRegister, handleLogin, validateToken, validateAdmin };
