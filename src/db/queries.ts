@@ -934,6 +934,28 @@ const getUsers = async (
   return users;
 };
 
+const deactivateUser = async (id: number) => {
+  await prisma.user.update({
+    where: {
+      id,
+    },
+    data: {
+      isActive: false,
+    },
+  });
+};
+
+const activateUser = async (id: number) => {
+  await prisma.user.update({
+    where: {
+      id,
+    },
+    data: {
+      isActive: true,
+    },
+  });
+};
+
 const createReportedPost = async ({
   postId,
   userId,
@@ -1016,4 +1038,6 @@ export default {
   markFirst15NotificationsAsRead,
   getUserDraftPosts,
   getUserPublishedPosts,
+  deactivateUser,
+  activateUser,
 };
