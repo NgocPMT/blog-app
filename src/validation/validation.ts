@@ -139,6 +139,25 @@ const commentValidation: ValidationChain[] = [
   body("content").trim().notEmpty().withMessage(`Comment ${emptyErr}`),
 ];
 
+const reportedPostValidation: ValidationChain[] = [
+  param("postId")
+    .isInt()
+    .withMessage("Post ID must be an integer!")
+    .bail()
+    .custom(async (postId: string) => {
+      const post = await db.getPostById(parseInt(postId));
+      if (!post) throw new Error("Post doesn't exist");
+    }),
+  param("userId")
+    .isInt()
+    .withMessage("User ID must be an integer!")
+    .bail()
+    .custom(async (userId: string) => {
+      const user = await db.getUserById(parseInt(userId));
+      if (!user) throw new Error("User doesn't exist");
+    }),
+];
+
 const commentParamValidation: ValidationChain[] = [
   param("commentId")
     .isInt()
@@ -262,6 +281,7 @@ export {
   slugParamValidation,
   postUpdateValidation,
   postSavingValidation,
+  reportedPostValidation,
 };
 
 export default {
@@ -279,4 +299,5 @@ export default {
   slugParamValidation,
   postUpdateValidation,
   postSavingValidation,
+  reportedPostValidation,
 };

@@ -3,6 +3,7 @@ import db from "../db/queries.js";
 import { validateAdminAuthorization } from "../middlewares/validateAuthorization.js";
 import {
   postQueryValidation,
+  reportedPostValidation,
   userIdParamValidation,
 } from "../validation/validation.js";
 import validate from "../middlewares/validate.js";
@@ -50,16 +51,31 @@ const getReportedPosts = [
   },
 ];
 
+const handleClearReportedPosts = [
+  passport.authenticate("jwt", { session: false }),
+  validateAdminAuthorization,
+  ...validate(reportedPostValidation),
+  async (req: Request, res: Response) => {
+    const { postId, userId } = req.body;
+    const deletedReportedPosts = await db.deleteReportedPost({
+      postId,
+      userId,
+    });
+
+    res.json({ message: "Clear report successfully", deletedReportedPosts });
+  },
+];
+
 const handleActivateUser = [
   passport.authenticate("jwt", { session: false }),
   validateAdminAuthorization,
   ...validate(userIdParamValidation),
   async (req: Request, res: Response) => {
-    const { id } = req.params as {
-      id: string;
+    const { userId } = req.params as {
+      userId: string;
     };
 
-    await db.activateUser(parseInt(id));
+    await db.activateUser(parseInt(userId));
 
     return res.json({ message: "Activate user successfully" });
   },
@@ -70,11 +86,11 @@ const handleDeactivateUser = [
   validateAdminAuthorization,
   ...validate(userIdParamValidation),
   async (req: Request, res: Response) => {
-    const { id } = req.params as {
-      id: string;
+    const { userId } = req.params as {
+      userId: string;
     };
 
-    await db.deactivateUser(parseInt(id));
+    await db.deactivateUser(parseInt(userId));
 
     return res.json({ message: "Deactivate user successfully" });
   },
@@ -85,4 +101,5 @@ export default {
   getUsers,
   handleActivateUser,
   handleDeactivateUser,
+  handleClearReportedPosts,
 };

@@ -81,7 +81,7 @@ const getPublishedPosts = async (
       FROM "Post" p
       INNER JOIN "User" u ON p."userId" = u.id
       WHERE 
-        p.status = 'PUBLISHED'
+        p.status = 'PUBLISHED' AND u."isActive" = true
         AND (
           p.title ILIKE ${"%" + searchQuery + "%"}
           OR u.username ILIKE ${"%" + searchQuery + "%"}
@@ -285,14 +285,14 @@ const getUserInformation = async (id: number) => {
 
 const getUserProfile = async (id: number) => {
   const user = await prisma.profile.findUnique({
-    where: { userId: id },
+    where: { userId: id, user: { isActive: true } },
   });
   return user ?? null;
 };
 
 const getUserProfileByUsername = async (username: string) => {
   const user = await prisma.profile.findFirst({
-    where: { user: { username } },
+    where: { user: { username, isActive: true } },
     include: {
       user: { select: { id: true, username: true } },
     },
@@ -393,7 +393,7 @@ const getUserFollowers = async (id: number, page?: number, limit?: number) => {
   const followers = await prisma.userFollows.findMany({
     skip,
     take,
-    where: { followingId: id },
+    where: { followingId: id, followedBy: { isActive: true } },
     include: {
       followedBy: {
         select: {
@@ -427,7 +427,7 @@ const unfollowUser = async (followingId: number, userId: number) => {
 
 const getUserFollowersByUsername = async (username: string) => {
   const followers = await prisma.userFollows.findMany({
-    where: { following: { username } },
+    where: { following: { username }, followedBy: { isActive: true } },
     include: {
       followedBy: {
         select: {
@@ -490,7 +490,7 @@ const getUserFollowings = async (id: number, page?: number, limit?: number) => {
   const followings = await prisma.userFollows.findMany({
     skip,
     take,
-    where: { followedById: id },
+    where: { followedById: id, following: { isActive: true } },
     include: {
       following: {
         select: {
@@ -533,7 +533,7 @@ const getUserByFollowingIdAndUserId = async (
 
 const getUserFollowingsByUsername = async (username: string) => {
   const followings = await prisma.userFollows.findMany({
-    where: { followedBy: { username } },
+    where: { followedBy: { username }, following: { isActive: true } },
     include: {
       following: {
         select: {
@@ -687,7 +687,7 @@ const getUserPosts = async (page: number, limit: number, userId: number) => {
   const posts = await prisma.post.findMany({
     skip: (page - 1) * limit,
     take: limit,
-    where: { userId },
+    where: { userId, user: { isActive: true } },
     select: {
       id: true,
       title: true,
@@ -720,7 +720,7 @@ const getUserPostsByUsername = async (
   const posts = await prisma.post.findMany({
     skip: (page - 1) * limit,
     take: limit,
-    where: { user: { username } },
+    where: { user: { username, isActive: true } },
     select: {
       id: true,
       title: true,
@@ -864,14 +864,6 @@ const getReportedPosts = async (
     take,
     orderBy: { createdAt: "desc" },
     where: {
-      user: {
-        username: userSearchQuery
-          ? {
-              contains: userSearchQuery,
-              mode: "insensitive",
-            }
-          : undefined,
-      },
       post: {
         title: titleSearchQuery
           ? {
@@ -879,6 +871,14 @@ const getReportedPosts = async (
               mode: "insensitive",
             }
           : undefined,
+        user: {
+          username: userSearchQuery
+            ? {
+                contains: userSearchQuery,
+                mode: "insensitive",
+              }
+            : undefined,
+        },
       },
     },
     include: {
@@ -972,6 +972,21 @@ const createReportedPost = async ({
   return createdReportedPost || null;
 };
 
+const getReportedPostByPostIdAndUserId = async ({
+  postId,
+  userId,
+}: {
+  postId: number;
+  userId: number;
+}) => {
+  const reportedPost = await prisma.reportedPosts.findUnique({
+    where: {
+      postId_userId: { postId, userId },
+    },
+  });
+  return reportedPost || null;
+};
+
 const deleteReportedPost = async ({
   postId,
   userId,
@@ -1040,4 +1055,5 @@ export default {
   getUserPublishedPosts,
   deactivateUser,
   activateUser,
+  getReportedPostByPostIdAndUserId,
 };
