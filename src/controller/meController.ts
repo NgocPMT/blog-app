@@ -8,6 +8,7 @@ import {
   profileValidation,
   followingIdValidation,
   followingIdParamValidation,
+  slugParamValidation,
 } from "../validation/validation.js";
 import validate from "../middlewares/validate.js";
 
@@ -362,6 +363,18 @@ const handleMarkSelfNotification = [
   },
 ];
 
+const handlePublishPost = [
+  passport.authenticate("jwt", { session: false }),
+  ...validate(slugParamValidation),
+  async (req: Request, res: Response) => {
+    const { slug } = req.params;
+
+    const publishedPost = await db.publishPost(slug);
+
+    return res.json({ message: "Publish post successfully", publishedPost });
+  },
+];
+
 export default {
   handleGetSelfInformation,
   handleGetSelfNotifications,
@@ -379,4 +392,5 @@ export default {
   handleGetSelfDraftPosts,
   handleGetSelfPublishedPosts,
   handleMarkSelfNotification,
+  handlePublishPost,
 };

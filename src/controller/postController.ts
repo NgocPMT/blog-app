@@ -16,11 +16,23 @@ import {
 } from "../middlewares/validateAuthorization.js";
 import validate from "../middlewares/validate.js";
 import slugify from "slug";
+import optionalAuth from "../middlewares/optionalAuth.js";
 
 const handleGetPostBySlug: RequestHandler[] = [
+  optionalAuth,
   async (req: Request, res: Response) => {
     const { slug } = req.params;
     const post = await db.getPostBySlug(slug);
+
+    if (post?.status === "DRAFT") {
+      if (!req.user) {
+        res.status(400).json({ error: "You can not view other user's draft" });
+      }
+      const userId = (req.user as { id: number }).id;
+      if (userId !== post.user.id) {
+        res.status(400).json({ error: "You can not view other user's draft" });
+      }
+    }
     res.json(post);
   },
 ];

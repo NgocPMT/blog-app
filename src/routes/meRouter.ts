@@ -33,4 +33,6 @@ meRouter.get("/published-posts", meController.handleGetSelfPublishedPosts);
 
 meRouter.get("/draft-posts", meController.handleGetSelfDraftPosts);
 
+meRouter.put("/draft-posts/:slug/publish", meController.handlePublishPost);
+
 export default meRouter;

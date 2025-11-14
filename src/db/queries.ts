@@ -120,6 +120,7 @@ const getPostBySlug = async (slug: string) => {
     include: {
       user: {
         select: {
+          id: true,
           Profile: true,
           username: true,
         },
@@ -1000,6 +1001,16 @@ const deleteReportedPost = async ({
   return deletedReportedPost || null;
 };
 
+const publishPost = async (slug: string) => {
+  const publishedPost = await prisma.post.update({
+    where: { slug },
+    data: {
+      status: "PUBLISHED",
+    },
+  });
+  return publishedPost;
+};
+
 export default {
   getPublishedPosts,
   getPostById,
@@ -1056,4 +1067,5 @@ export default {
   deactivateUser,
   activateUser,
   getReportedPostByPostIdAndUserId,
+  publishPost,
 };
