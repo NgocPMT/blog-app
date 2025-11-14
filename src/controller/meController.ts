@@ -118,9 +118,9 @@ const handleGetSelfFollowings = [
     };
     const userId = (req.user as { id: number }).id;
     const followings = await db.getUserFollowings(
+      userId,
       parseInt(page),
-      parseInt(limit),
-      userId
+      parseInt(limit)
     );
     return res.json(followings);
   },

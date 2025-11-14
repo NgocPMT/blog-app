@@ -10,13 +10,15 @@ const getUsers = [
   validateAdminAuthorization,
   ...validate(postQueryValidation),
   async (req: Request, res: Response) => {
-    const { page, limit } = req.query as {
+    const { page, limit, search } = req.query as {
       page?: string;
       limit?: string;
+      search?: string;
     };
     const users = await db.getUsers(
       page ? parseInt(page) : undefined,
-      limit ? parseInt(limit) : undefined
+      limit ? parseInt(limit) : undefined,
+      search
     );
 
     res.json({ users });
