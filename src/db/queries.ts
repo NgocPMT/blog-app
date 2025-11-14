@@ -340,6 +340,7 @@ const getUserNotifications = async (id: number) => {
 const markFirst15NotificationsAsRead = async (id: number) => {
   const first15 = await prisma.notification.findMany({
     take: 15,
+    where: { userId: id },
     orderBy: { createdAt: "desc" },
     select: { id: true },
   });
