@@ -626,6 +626,7 @@ const getUserPublishedPosts = async (
   const posts = await prisma.post.findMany({
     skip: (page - 1) * limit,
     take: limit,
+    orderBy: { createdAt: "desc" },
     where: { userId, status: "PUBLISHED" },
     select: {
       id: true,
@@ -659,6 +660,7 @@ const getUserDraftPosts = async (
   const posts = await prisma.post.findMany({
     skip: (page - 1) * limit,
     take: limit,
+    orderBy: { createdAt: "desc" },
     where: { userId, status: "DRAFT" },
     select: {
       id: true,
