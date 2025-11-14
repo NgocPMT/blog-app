@@ -1,3 +1,4 @@
+import { body } from "express-validator";
 import { PrismaClient, PostStatus, NotificationType } from "@prisma/client";
 interface User {
   username: string;
@@ -853,6 +854,7 @@ const getReportedPosts = async (page?: number, limit?: number) => {
   const reportedPosts = await prisma.reportedPosts.findMany({
     skip,
     take,
+    orderBy: { createdAt: "desc" },
     include: {
       post: {
         select: {
@@ -880,14 +882,26 @@ const getReportedPosts = async (page?: number, limit?: number) => {
   return reportedPosts;
 };
 
-const getUsers = async (page?: number, limit?: number) => {
+const getUsers = async (
+  page?: number,
+  limit?: number,
+  searchQuery?: string
+) => {
   const skip = page && limit ? (page - 1) * limit : 0;
   const take = limit || undefined;
 
   const users = await prisma.user.findMany({
     skip,
     take,
-    where: { role: null },
+    where: {
+      role: null,
+      username: searchQuery
+        ? {
+            contains: searchQuery,
+            mode: "insensitive",
+          }
+        : undefined,
+    },
     omit: { password: true },
   });
 
