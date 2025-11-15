@@ -175,7 +175,7 @@ const unreactPost = async (postId: number, userId: number) => {
   const reaction = await prisma.postReaction.delete({
     where: { userId_postId: { postId, userId } },
   });
-  return reaction || null;
+  return reaction || null;  
 };
 
 const doesSlugExist = async (slug: string) => {

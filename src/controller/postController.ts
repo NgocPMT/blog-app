@@ -176,11 +176,6 @@ const handleSavePostToDrafts = [
 
     const post = await db.getPostByTitleAndUserId(title, userId);
 
-    if (post)
-      return res
-        .status(400)
-        .json({ error: "Post with this title already existed on this user" });
-
     if (id) {
       const updatedPost = await db.updatePost({
         id,
@@ -193,6 +188,11 @@ const handleSavePostToDrafts = [
         .status(200)
         .json({ message: "Saved post to drafts successfully", updatedPost });
     }
+
+    if (post)
+      return res
+        .status(400)
+        .json({ error: "Post with this title already existed on this user" });
 
     const createdPost = await db.createPost({
       title,

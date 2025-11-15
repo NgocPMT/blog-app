@@ -140,7 +140,7 @@ const commentValidation: ValidationChain[] = [
 ];
 
 const reportedPostValidation: ValidationChain[] = [
-  param("postId")
+  body("postId")
     .isInt()
     .withMessage("Post ID must be an integer!")
     .bail()
@@ -148,7 +148,7 @@ const reportedPostValidation: ValidationChain[] = [
       const post = await db.getPostById(parseInt(postId));
       if (!post) throw new Error("Post doesn't exist");
     }),
-  param("userId")
+  body("userId")
     .isInt()
     .withMessage("User ID must be an integer!")
     .bail()
