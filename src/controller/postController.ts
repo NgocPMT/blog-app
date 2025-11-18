@@ -139,7 +139,7 @@ const handleCreatePost = [
       await db.createNotification({
         actorId: userId,
         type: "NEW_POST",
-        relatedId: createdPost.id,
+        postId: createdPost.id,
         userId: follower.followedBy.id,
       });
     });
@@ -240,7 +240,7 @@ const handleReactPost = [
 
     await db.createNotification({
       userId: author.user.id,
-      relatedId: parseInt(postId),
+      postId: parseInt(postId),
       type: "POST_REACTION",
       actorId: userId,
     });
