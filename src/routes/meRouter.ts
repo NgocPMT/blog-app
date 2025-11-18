@@ -1,5 +1,6 @@
 import { Router } from "express";
 import meController from "../controller/meController.js";
+import readingListRouter from "./readingListRouter.js";
 
 const meRouter = Router();
 
@@ -21,12 +22,6 @@ meRouter.post("/followings", meController.handleFollowUser);
 
 meRouter.delete("/followings/:followingId", meController.handleUnfollowUser);
 
-meRouter.get("/saved-posts", meController.handleGetSelfSavedPosts);
-
-meRouter.post("/saved-posts", meController.handleAddToSavedPosts);
-
-meRouter.delete("/saved-posts/:postId", meController.handleDeleteSavedPosts);
-
 meRouter.get("/posts", meController.handleGetSelfPosts);
 
 meRouter.get("/published-posts", meController.handleGetSelfPublishedPosts);
@@ -34,5 +29,7 @@ meRouter.get("/published-posts", meController.handleGetSelfPublishedPosts);
 meRouter.get("/draft-posts", meController.handleGetSelfDraftPosts);
 
 meRouter.put("/draft-posts/:slug/publish", meController.handlePublishPost);
+
+meRouter.use("/reading-lists", readingListRouter);
 
 export default meRouter;

@@ -1,4 +1,3 @@
-import { body } from "express-validator";
 import { PrismaClient, PostStatus, NotificationType } from "@prisma/client";
 interface User {
   username: string;
@@ -31,8 +30,14 @@ interface Profile {
 interface Notification {
   userId: number;
   actorId: number;
-  relatedId: number;
   type: NotificationType;
+  postId?: number;
+  publicationInvitationId?: number;
+}
+
+interface ReadingList {
+  name: string;
+  userId: number;
 }
 
 const prisma = new PrismaClient();
@@ -175,7 +180,7 @@ const unreactPost = async (postId: number, userId: number) => {
   const reaction = await prisma.postReaction.delete({
     where: { userId_postId: { postId, userId } },
   });
-  return reaction || null;  
+  return reaction || null;
 };
 
 const doesSlugExist = async (slug: string) => {
@@ -356,7 +361,7 @@ const markFirst15NotificationsAsRead = async (id: number) => {
 };
 
 const createNotification = async (notification: Notification) => {
-  const { userId, actorId, relatedId, type } = notification;
+  const { userId, actorId, type } = notification;
   const actorProfile = await getUserProfile(actorId);
   let message;
   switch (type) {
@@ -374,6 +379,11 @@ const createNotification = async (notification: Notification) => {
     }
     case "PUBLICATION_INVITE": {
       message = `${actorProfile?.name} invite you to join their publication.`;
+      break;
+    }
+    case "NEW_FOLLOW": {
+      message = `${actorProfile?.name} just followed you.`;
+      break;
     }
   }
   const createdNotification = await prisma.notification.create({
@@ -381,7 +391,6 @@ const createNotification = async (notification: Notification) => {
       userId,
       actorId,
       message,
-      relatedId,
       type,
     },
   });
@@ -571,11 +580,17 @@ const getUserStatistics = async (page: number, limit: number, id: number) => {
   return { follows, posts };
 };
 
-const getUserSavedPosts = async (page: number, limit: number, id: number) => {
-  const savedPosts = await prisma.readingList.findMany({
-    skip: (page - 1) * limit,
-    take: limit,
-    where: { userId: id },
+const getReadingListSavedPosts = async (
+  id: number,
+  page?: number,
+  limit?: number
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+  const savedPosts = await prisma.savedPost.findMany({
+    skip,
+    take,
+    where: { readingListId: id },
     include: {
       post: {
         select: {
@@ -602,19 +617,60 @@ const getUserSavedPosts = async (page: number, limit: number, id: number) => {
   return savedPosts;
 };
 
-const addToSavedPost = async (postId: number, userId: number) => {
-  const savedPost = await prisma.readingList.create({
+const getUsersReadingList = async (userId: number) => {
+  const readingLists = await prisma.readingList.findMany({
+    where: { userId },
+  });
+  return readingLists;
+};
+
+const createReadingList = async (readingList: ReadingList) => {
+  const { name, userId } = readingList;
+  const createdReadingList = await prisma.readingList.create({
+    data: {
+      name,
+      userId,
+    },
+  });
+  return createdReadingList;
+};
+
+const updateReadingList = async ({
+  id,
+  name,
+}: {
+  id: number;
+  name: string;
+}) => {
+  const updatedReadingList = await prisma.readingList.update({
+    where: { id },
+    data: {
+      name,
+    },
+  });
+  return updatedReadingList;
+};
+
+const deleteReadingList = async (id: number) => {
+  const deletedReadingList = await prisma.readingList.delete({
+    where: { id },
+  });
+  return deletedReadingList;
+};
+
+const createSavedPost = async (postId: number, readingListId: number) => {
+  const savedPost = await prisma.savedPost.create({
     data: {
       postId,
-      userId,
+      readingListId,
     },
   });
   return savedPost;
 };
 
-const deleteSavedPost = async (postId: number, userId: number) => {
-  const deletedPost = await prisma.readingList.delete({
-    where: { postId_userId: { postId, userId } },
+const deleteSavedPost = async (id: number) => {
+  const deletedPost = await prisma.savedPost.delete({
+    where: { id },
   });
   return deletedPost;
 };
@@ -755,12 +811,12 @@ const getPostByTitleAndUserId = async (title: string, userId: number) => {
   return post;
 };
 
-const getSavedPostByPostIdAndUserId = async (
+const getSavedPostByPostIdAndReadingListId = async (
   postId: number,
-  userId: number
+  readingListId: number
 ) => {
-  const post = await prisma.readingList.findUnique({
-    where: { postId_userId: { postId, userId } },
+  const post = await prisma.savedPost.findUnique({
+    where: { postId_readingListId: { postId, readingListId } },
   });
   return post;
 };
@@ -924,7 +980,7 @@ const getUsers = async (
     skip,
     take,
     where: {
-      role: null,
+      role: "USER",
       username: searchQuery
         ? {
             contains: searchQuery,
@@ -1033,8 +1089,12 @@ export default {
   getUserFollowers,
   getUserFollowings,
   getUserStatistics,
-  getUserSavedPosts,
-  addToSavedPost,
+  getUsersReadingList,
+  createReadingList,
+  updateReadingList,
+  deleteReadingList,
+  getReadingListSavedPosts,
+  createSavedPost,
   deleteSavedPost,
   getUserFollowersByUsername,
   getUserFollowingsByUsername,
@@ -1054,7 +1114,7 @@ export default {
   followUser,
   unfollowUser,
   getUserByFollowingIdAndUserId,
-  getSavedPostByPostIdAndUserId,
+  getSavedPostByPostIdAndReadingListId,
   getReactionTypes,
   createNotification,
   getUserByPostId,

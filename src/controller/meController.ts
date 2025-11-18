@@ -179,82 +179,82 @@ const handleUnfollowUser = [
   },
 ];
 
-const handleGetSelfSavedPosts = [
-  passport.authenticate("jwt", { session: false }),
-  ...validate(postQueryValidation),
-  async (req: Request, res: Response) => {
-    if (!req.user)
-      return res
-        .status(401)
-        .json({ error: "User must logged in to do this action" });
+// const handleGetSelfSavedPosts = [
+//   passport.authenticate("jwt", { session: false }),
+//   ...validate(postQueryValidation),
+//   async (req: Request, res: Response) => {
+//     if (!req.user)
+//       return res
+//         .status(401)
+//         .json({ error: "User must logged in to do this action" });
 
-    const { page, limit } = req.query as {
-      page: string;
-      limit: string;
-    };
-    const userId = (req.user as { id: number }).id;
-    const savedPosts = await db.getUserSavedPosts(
-      parseInt(page),
-      parseInt(limit),
-      userId
-    );
-    return res.json(savedPosts);
-  },
-];
+//     const { page, limit } = req.query as {
+//       page: string;
+//       limit: string;
+//     };
+//     const userId = (req.user as { id: number }).id;
+//     const savedPosts = await db.getUserSavedPosts(
+//       parseInt(page),
+//       parseInt(limit),
+//       userId
+//     );
+//     return res.json(savedPosts);
+//   },
+// ];
 
-const handleAddToSavedPosts = [
-  passport.authenticate("jwt", { session: false }),
-  ...validate(postIdValidation),
-  async (req: Request, res: Response) => {
-    if (!req.user)
-      return res
-        .status(401)
-        .json({ error: "User must logged in to do this action" });
-    const { postId } = req.body;
+// const handleAddToSavedPosts = [
+//   passport.authenticate("jwt", { session: false }),
+//   ...validate(postIdValidation),
+//   async (req: Request, res: Response) => {
+//     if (!req.user)
+//       return res
+//         .status(401)
+//         .json({ error: "User must logged in to do this action" });
+//     const { postId } = req.body;
 
-    const userId = (req.user as { id: number }).id;
+//     const userId = (req.user as { id: number }).id;
 
-    const post = await db.getSavedPostByPostIdAndUserId(
-      parseInt(postId),
-      userId
-    );
-    if (post)
-      return res
-        .status(400)
-        .json({ error: "This post is already saved to your library" });
+//     const post = await db.getSavedPostByPostIdAndUserId(
+//       parseInt(postId),
+//       userId
+//     );
+//     if (post)
+//       return res
+//         .status(400)
+//         .json({ error: "This post is already saved to your library" });
 
-    await db.addToSavedPost(parseInt(postId), userId);
-    return res
-      .status(201)
-      .json({ message: "Added to saved post successfully" });
-  },
-];
+//     await db.addToSavedPost(parseInt(postId), userId);
+//     return res
+//       .status(201)
+//       .json({ message: "Added to saved post successfully" });
+//   },
+// ];
 
-const handleDeleteSavedPosts = [
-  passport.authenticate("jwt", { session: false }),
-  ...validate(postParamValidation),
-  async (req: Request, res: Response) => {
-    if (!req.user)
-      return res
-        .status(401)
-        .json({ error: "User must logged in to do this action" });
-    const { postId } = req.params;
+// const handleDeleteSavedPosts = [
+//   passport.authenticate("jwt", { session: false }),
+//   ...validate(postParamValidation),
+//   async (req: Request, res: Response) => {
+//     if (!req.user)
+//       return res
+//         .status(401)
+//         .json({ error: "User must logged in to do this action" });
+//     const { postId } = req.params;
 
-    const userId = (req.user as { id: number }).id;
+//     const userId = (req.user as { id: number }).id;
 
-    const post = await db.getSavedPostByPostIdAndUserId(
-      parseInt(postId),
-      userId
-    );
-    if (!post)
-      return res
-        .status(400)
-        .json({ error: "This post is not saved to your library yet" });
+//     const post = await db.getSavedPostByPostIdAndReadingListId(
+//       parseInt(postId),
+//       userId
+//     );
+//     if (!post)
+//       return res
+//         .status(400)
+//         .json({ error: "This post is not saved to your library yet" });
 
-    await db.deleteSavedPost(parseInt(postId), userId);
-    return res.json({ message: "Deleted saved post successfully" });
-  },
-];
+//     await db.deleteSavedPost(parseInt(postId), userId);
+//     return res.json({ message: "Deleted saved post successfully" });
+//   },
+// ];
 
 const handleGetSelfPosts = [
   passport.authenticate("jwt", { session: false }),
@@ -384,11 +384,8 @@ export default {
   handleGetSelfStatistics,
   handleGetSelfFollowers,
   handleGetSelfFollowings,
-  handleGetSelfSavedPosts,
   handleGetSelfPosts,
   handleUpdateSelfProfile,
-  handleAddToSavedPosts,
-  handleDeleteSavedPosts,
   handleFollowUser,
   handleUnfollowUser,
   handleGetSelfDraftPosts,
