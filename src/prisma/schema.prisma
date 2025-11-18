@@ -8,23 +8,72 @@ datasource db {
 }
 
 model User {
-  id            Int             @id @default(autoincrement())
-  username      String?         @unique
-  email         String          @unique
-  password      String?
-  role          String?
-  createdAt     DateTime        @default(now())
-  isActive      Boolean         @default(true)
-  comments      Comment[]
-  notifications Notification[]  @relation("UserAsOwner")
-  posts         Post[]
-  PostReaction  PostReaction[]
-  PostView      PostView[]
-  Profile       Profile?
-  ReadingList   ReadingList[]
-  ReportedPosts ReportedPosts[]
-  followedBy    UserFollows[]   @relation("followedBy")
-  following     UserFollows[]   @relation("following")
+  id                   Int                     @id @default(autoincrement())
+  username             String                  @unique
+  email                String                  @unique
+  password             String
+  role                 UserRole                @default(USER)
+  createdAt            DateTime                @default(now())
+  isActive             Boolean                 @default(true)
+  comments             Comment[]
+  notificationsAsUser  Notification[]          @relation("UserAsOwner")
+  NotificationsAsActor Notification[]          @relation("UserAsActor")
+  posts                Post[]
+  PostReaction         PostReaction[]
+  PostView             PostView[]
+  Profile              Profile?
+  ReportedPosts        ReportedPosts[]
+  followedBy           UserFollows[]           @relation("followedBy")
+  following            UserFollows[]           @relation("following")
+  readingList          ReadingList[]
+  publicationToUsers   PublicationToUser[]
+  sentInvitations      PublicationInvitation[] @relation("InviterRelation")
+  receivedInvitations  PublicationInvitation[] @relation("InviteeRelation")
+
+  @@index([email])
+  @@index([username])
+}
+
+model Publication {
+  id                     Int                     @id @default(autoincrement())
+  name                   String
+  bio                    String?
+  avatarUrl              String?
+  posts                  Post[]
+  publicationToUsers     PublicationToUser[]
+  publicationInvitations PublicationInvitation[]
+}
+
+model PublicationToUser {
+  userId        Int
+  publicationId Int
+  createdAt     DateTime    @default(now())
+  user          User        @relation(references: [id], fields: [userId])
+  publication   Publication @relation(references: [id], fields: [publicationId])
+  isOwner       Boolean     @default(false)
+
+  @@unique([userId, publicationId])
+}
+
+model PublicationInvitation {
+  id            Int          @id @default(autoincrement())
+  publicationId Int
+  inviterId     Int
+  inviteeId     Int
+  status        InviteStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  respondedAt   DateTime?
+
+  publication   Publication    @relation(fields: [publicationId], references: [id])
+  inviter       User           @relation("InviterRelation", fields: [inviterId], references: [id])
+  invitee       User           @relation("InviteeRelation", fields: [inviteeId], references: [id])
+  notifications Notification[]
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }
 
 model UserFollows {
@@ -47,15 +96,20 @@ model Profile {
 }
 
 model Notification {
-  id        Int              @id @default(autoincrement())
-  userId    Int
-  type      NotificationType
-  message   String
-  isRead    Boolean          @default(false)
-  relatedId Int?
-  createdAt DateTime         @default(now())
-  actorId   Int
-  user      User             @relation("UserAsOwner", fields: [userId], references: [id], onDelete: Cascade)
+  id      Int              @id @default(autoincrement())
+  userId  Int
+  type    NotificationType
+  message String
+  isRead  Boolean          @default(false)
+  postId  Int?
+
+  createdAt               DateTime               @default(now())
+  actorId                 Int
+  user                    User                   @relation("UserAsOwner", fields: [userId], references: [id], onDelete: Cascade)
+  actor                   User                   @relation("UserAsActor", fields: [actorId], references: [id], onDelete: Cascade)
+  publicationInvitationId Int?
+  publicationInvitation   PublicationInvitation? @relation(fields: [publicationInvitationId], references: [id])
+  post                    Post?                  @relation(fields: [postId], references: [id])
 
   @@index([userId, isRead])
 }
@@ -70,23 +124,37 @@ model ReportedPosts {
   @@unique([postId, userId])
 }
 
-model ReadingList {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  postId Int
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model SavedPost {
+  id            Int         @id @default(autoincrement())
+  createdAt     DateTime    @default(now())
+  postId        Int
+  readingListId Int
+  post          Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  readingList   ReadingList @relation(fields: [readingListId], references: [id], onDelete: Cascade)
 
-  @@unique([postId, userId])
+  @@unique([postId, readingListId])
+  @@index([readingListId])
+  @@index([postId])
+}
+
+model ReadingList {
+  id         Int         @id @default(autoincrement())
+  name       String
+  createdAt  DateTime    @default(now())
+  userId     Int
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savedPosts SavedPost[]
+
+  @@unique([name, userId])
 }
 
 model Post {
-  id            Int             @id @default(autoincrement())
-  title         String
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  userId        Int
-  publicationId Int?
+  id        Int      @id @default(autoincrement())
+  title     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+
   coverImageUrl String?
   status        PostStatus      @default(DRAFT)
   content       Json
@@ -95,14 +163,34 @@ model Post {
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   PostReaction  PostReaction[]
   PostView      PostView[]
-  ReadingList   ReadingList[]
   ReportedPosts ReportedPosts[]
+  postTopics    PostTopic[]
+  publicationId Int?
+  publication   Publication?    @relation(references: [id], fields: [publicationId], onDelete: SetNull)
+  SavedPosts    SavedPost[]
+  notifications Notification[]
 
   @@unique([title, userId])
   @@index([userId])
   @@index([status])
   @@index([createdAt])
   @@index([publicationId])
+}
+
+model PostTopic {
+  postId  Int
+  topicId Int
+  post    Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  topic   Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, topicId])
+}
+
+model Topic {
+  id         Int         @id @default(autoincrement())
+  name       String      @unique
+  createdAt  DateTime    @default(now())
+  postTopics PostTopic[]
 }
 
 model PostView {
@@ -130,27 +218,23 @@ model PostReaction {
 }
 
 model Comment {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   content   String
-  createdAt DateTime  @default(now())
-  isEdited  Boolean   @default(false)
+  createdAt DateTime @default(now())
+  isEdited  Boolean  @default(false)
   postId    Int
   userId    Int
-  parentId  Int?
-  updatedAt DateTime  @updatedAt
-  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
-  replies   Comment[] @relation("CommentReplies")
-  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([postId])
   @@index([userId])
-  @@index([parentId])
 }
 
 model ReactionType {
   id               Int            @id @default(autoincrement())
-  name             String
+  name             String         @unique
   reactionImageUrl String
   PostReaction     PostReaction[]
 }
@@ -160,10 +244,16 @@ enum NotificationType {
   NEW_COMMENT
   PUBLICATION_INVITE
   POST_REACTION
+  NEW_FOLLOW
 }
 
 enum PostStatus {
   DRAFT
   PENDING
   PUBLISHED
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
