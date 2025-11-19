@@ -246,6 +246,41 @@ const getPostById = async (id: number) => {
   return post ?? null;
 };
 
+const getTopics = async () => {
+  const topics = await prisma.topic.findMany({});
+  return topics;
+};
+
+const createTopic = async ({ name }: { name: string }) => {
+  const createdTopic = await prisma.topic.create({
+    data: {
+      name,
+    },
+  });
+  return createdTopic;
+};
+
+const updateTopic = async ({ id, name }: { id: number; name: string }) => {
+  const updatedTopic = await prisma.topic.update({
+    where: {
+      id,
+    },
+    data: {
+      name,
+    },
+  });
+  return updatedTopic;
+};
+
+const deleteTopic = async (id: number) => {
+  const deletedTopic = await prisma.topic.delete({
+    where: {
+      id,
+    },
+  });
+  return deletedTopic;
+};
+
 const getReactionTypes = async () => {
   const reactions = await prisma.reactionType.findMany();
   return reactions;
@@ -1077,6 +1112,10 @@ export default {
   createPost,
   updatePost,
   deletePost,
+  getTopics,
+  createTopic,
+  updateTopic,
+  deleteTopic,
   doesSlugExist,
   getUserById,
   getUserInformation,
