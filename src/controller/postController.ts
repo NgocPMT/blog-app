@@ -62,14 +62,19 @@ const handleUpdatePost: RequestHandler[] = [
   ...validate(postUpdateValidation),
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.postId);
-    const { title, content, coverImageUrl } = req.body;
+    const { title, content, coverImageUrl, topics } = req.body as {
+      title: string;
+      content: string;
+      coverImageUrl: string;
+      topics: number[];
+    };
     const parsedContent = JSON.parse(content);
 
     const userId = (req.user as { id: number }).id;
 
-    const post = await db.getPostByTitleAndUserId(title, userId);
+    const duplicatePost = await db.getPostByTitleAndUserId(title, userId);
 
-    if (post)
+    if (duplicatePost)
       return res
         .status(400)
         .json({ error: "Post with this title already existed on this user" });
@@ -82,13 +87,24 @@ const handleUpdatePost: RequestHandler[] = [
       slug = `${slug}-${Date.now()}`;
     }
 
+    const post = (await db.getPostById(id))!; // cannot be null because the postId is validated
+
+    const oldTopics = post.postTopics.map((topic) => topic.topicId);
+
+    const topicsToAdd = topics.filter((topic) => !oldTopics?.includes(topic));
+
+    const topicsToRemove = oldTopics.filter((topic) => !topics.includes(topic));
+
     await db.updatePost({
       id,
       title,
       content: parsedContent,
       slug,
       coverImageUrl,
+      topicsToAdd,
+      topicsToRemove,
     });
+
     return res.json({ message: "Update post successfully" });
   },
 ];
@@ -112,7 +128,12 @@ const handleCreatePost = [
     if (!req.user)
       return res.status(401).json({ error: "You must login to create a post" });
 
-    const { title, content, coverImageUrl } = req.body;
+    const { title, content, coverImageUrl, topics } = req.body as {
+      title: string;
+      content: string;
+      coverImageUrl: string;
+      topics: number[];
+    };
 
     const parsedContent = JSON.parse(content);
 
@@ -132,6 +153,7 @@ const handleCreatePost = [
       status: "PUBLISHED",
       userId,
       coverImageUrl,
+      topicIds: topics,
     });
     const followers = await db.getUserFollowers(userId);
 

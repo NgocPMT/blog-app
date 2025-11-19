@@ -12,6 +12,7 @@ interface Post {
   userId: number;
   status?: PostStatus;
   coverImageUrl?: string;
+  topicIds?: number[];
 }
 
 interface Comment {
@@ -69,6 +70,11 @@ const getPublishedPosts = async (
           WHERE pr."postId" = p.id
         ), '[]'::json) as "PostReaction",
         COALESCE((
+          SELECT json_agg(pt.*)
+          FROM "postTopics" pt
+          WHERE pt."postId" = p.id
+        ), '[]'::json) as "postTopics",
+        COALESCE((
           SELECT json_agg(pv.*)
           FROM "PostView" pv
           WHERE pv."postId" = p.id
@@ -113,6 +119,7 @@ const getPublishedPosts = async (
       },
       PostReaction: true,
       PostView: true,
+      postTopics: true,
       comments: true,
     },
     orderBy: { createdAt: "desc" },
@@ -136,6 +143,7 @@ const getPostBySlug = async (slug: string) => {
         },
       },
       PostView: true,
+      postTopics: true,
       comments: true,
     },
   });
@@ -143,7 +151,8 @@ const getPostBySlug = async (slug: string) => {
 };
 
 const createPost = async (post: Post) => {
-  const { title, slug, content, userId, status, coverImageUrl } = post;
+  const { title, slug, content, userId, status, coverImageUrl, topicIds } =
+    post;
   const createdPost = await prisma.post.create({
     data: {
       title,
@@ -154,6 +163,14 @@ const createPost = async (post: Post) => {
       coverImageUrl,
     },
   });
+  if (topicIds && topicIds.length > 0) {
+    await prisma.postTopic.createMany({
+      data: topicIds.map((topicId) => {
+        return { postId: createdPost.id, topicId };
+      }),
+      skipDuplicates: true,
+    });
+  }
 
   return createdPost;
 };
@@ -200,25 +217,51 @@ const updatePost = async ({
   content,
   slug,
   coverImageUrl,
+  topicsToAdd,
+  topicsToRemove,
 }: {
   id: number;
   title: string;
   content: string;
   slug: string;
   coverImageUrl: string;
+  topicsToAdd?: number[];
+  topicsToRemove?: number[];
 }) => {
-  const post = await prisma.post.update({
-    where: {
-      id,
-    },
-    data: {
-      title,
-      content,
-      slug,
-      coverImageUrl,
-    },
+  const result = await prisma.$transaction(async (tx) => {
+    const updatedPost = await tx.post.update({
+      where: { id },
+      data: {
+        title,
+        content,
+        slug,
+        coverImageUrl,
+      },
+    });
+
+    if (topicsToRemove && topicsToRemove.length > 0) {
+      await tx.postTopic.deleteMany({
+        where: {
+          postId: id,
+          topicId: { in: topicsToRemove },
+        },
+      });
+    }
+
+    if (topicsToAdd && topicsToAdd.length > 0) {
+      await tx.postTopic.createMany({
+        data: topicsToAdd.map((topicId) => ({
+          postId: id,
+          topicId,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    return updatedPost;
   });
-  return post;
+
+  return result;
 };
 
 const deletePost = async (id: number) => {
@@ -239,6 +282,7 @@ const getPostById = async (id: number) => {
         },
       },
       PostReaction: true,
+      postTopics: true,
       PostView: true,
       comments: true,
     },
@@ -636,6 +680,7 @@ const getReadingListSavedPosts = async (
           coverImageUrl: true,
           createdAt: true,
           PostReaction: true,
+          postTopics: true,
           comments: true,
           user: {
             select: {
@@ -738,6 +783,7 @@ const getUserPublishedPosts = async (
       },
       PostReaction: true,
       PostView: true,
+      postTopics: true,
       comments: true,
     },
   });
@@ -772,6 +818,7 @@ const getUserDraftPosts = async (
       },
       PostReaction: true,
       PostView: true,
+      postTopics: true,
       comments: true,
     },
   });
@@ -800,6 +847,7 @@ const getUserPosts = async (page: number, limit: number, userId: number) => {
         },
       },
       PostReaction: true,
+      postTopics: true,
       PostView: true,
       comments: true,
     },
@@ -831,6 +879,7 @@ const getUserPostsByUsername = async (
         },
       },
       PostReaction: true,
+      postTopics: true,
       PostView: true,
       comments: true,
     },
