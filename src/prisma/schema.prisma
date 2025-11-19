@@ -29,6 +29,7 @@ model User {
   publicationToUsers   PublicationToUser[]
   sentInvitations      PublicationInvitation[] @relation("InviterRelation")
   receivedInvitations  PublicationInvitation[] @relation("InviteeRelation")
+  publicationFollows   PublicationFollow[]
 
   @@index([email])
   @@index([username])
@@ -42,6 +43,17 @@ model Publication {
   posts                  Post[]
   publicationToUsers     PublicationToUser[]
   publicationInvitations PublicationInvitation[]
+  publicationFollows     PublicationFollow[]
+}
+
+model PublicationFollow {
+  publicationId Int
+  userId        Int
+  followAt      DateTime    @default(now())
+  publication   Publication @relation(references: [id], fields: [publicationId], onDelete: Cascade)
+  user          User        @relation(references: [id], fields: [userId], onDelete: Cascade)
+
+  @@unique([publicationId, userId])
 }
 
 model PublicationToUser {
@@ -68,12 +80,6 @@ model PublicationInvitation {
   inviter       User           @relation("InviterRelation", fields: [inviterId], references: [id])
   invitee       User           @relation("InviteeRelation", fields: [inviteeId], references: [id])
   notifications Notification[]
-}
-
-enum InviteStatus {
-  PENDING
-  ACCEPTED
-  DECLINED
 }
 
 model UserFollows {
@@ -256,4 +262,10 @@ enum PostStatus {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }
