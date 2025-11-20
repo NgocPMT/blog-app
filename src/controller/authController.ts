@@ -109,4 +109,24 @@ const validateAdmin: RequestHandler[] = [
   },
 ];
 
-export default { handleRegister, handleLogin, validateToken, validateAdmin };
+const validateOwner: RequestHandler[] = [
+  passport.authenticate("jwt", { session: false }),
+  async (req: Request, res: Response) => {
+    const publicationId = parseInt(req.params.publicationId);
+    const currentUserId = (req.user as { id: number }).id;
+
+    const publication = await db.getPublicationOwner(publicationId);
+
+    if (!publication) return res.status(404).json({ isOwner: false });
+
+    return res.json({ isOwner: publication.user.id === currentUserId });
+  },
+];
+
+export default {
+  handleRegister,
+  handleLogin,
+  validateToken,
+  validateAdmin,
+  validateOwner,
+};

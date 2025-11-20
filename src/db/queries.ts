@@ -1217,6 +1217,18 @@ const getPublications = async (
   return publications;
 };
 
+const getPublicationOwner = async (publicationId: number) => {
+  const publication = await prisma.publicationToUser.findFirst({
+    where: {
+      publicationId,
+    },
+    select: {
+      user: { select: { id: true } },
+    },
+  });
+  return publication;
+};
+
 const getPublicationPosts = async (
   publicationId: number,
   page?: number,
@@ -1344,6 +1356,7 @@ export default {
   createPublication,
   getPublications,
   getPublicationPosts,
+  getPublicationOwner,
   updatePublication,
   deletePublication,
 };

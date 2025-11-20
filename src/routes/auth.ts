@@ -11,4 +11,6 @@ auth.get("/validate-token", authController.validateToken);
 
 auth.get("/validate-admin", authController.validateAdmin);
 
+auth.get("/validate-owner/:publicationId", authController.validateOwner);
+
 export default auth;
