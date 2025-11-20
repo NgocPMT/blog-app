@@ -11,6 +11,7 @@ interface Post {
   content: string;
   userId: number;
   status?: PostStatus;
+  publicationId?: number;
   coverImageUrl?: string;
   topicIds?: number[];
 }
@@ -158,8 +159,16 @@ const getPostBySlug = async (slug: string) => {
 };
 
 const createPost = async (post: Post) => {
-  const { title, slug, content, userId, status, coverImageUrl, topicIds } =
-    post;
+  const {
+    title,
+    slug,
+    content,
+    userId,
+    status,
+    publicationId,
+    coverImageUrl,
+    topicIds,
+  } = post;
   const createdPost = await prisma.post.create({
     data: {
       title,
@@ -168,6 +177,9 @@ const createPost = async (post: Post) => {
       user: { connect: { id: userId } },
       status,
       coverImageUrl,
+      ...(publicationId && {
+        publication: { connect: { id: publicationId } },
+      }),
     },
   });
   if (topicIds && topicIds.length > 0) {
@@ -1205,6 +1217,30 @@ const getPublications = async (
   return publications;
 };
 
+const getPublicationPosts = async (
+  publicationId: number,
+  page?: number,
+  limit?: number,
+  searchQuery?: string
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+  const publicationPosts = await prisma.post.findMany({
+    skip,
+    take,
+    where: {
+      publicationId,
+      title: searchQuery
+        ? {
+            contains: searchQuery,
+            mode: "insensitive",
+          }
+        : undefined,
+    },
+  });
+  return publicationPosts;
+};
+
 const updatePublication = async ({
   id,
   name,
@@ -1307,6 +1343,7 @@ export default {
   publishPost,
   createPublication,
   getPublications,
+  getPublicationPosts,
   updatePublication,
   deletePublication,
 };
