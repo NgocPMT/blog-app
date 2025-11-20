@@ -41,6 +41,13 @@ interface ReadingList {
   userId: number;
 }
 
+interface Publication {
+  name: string;
+  userId: number;
+  bio?: string;
+  avatarUrl?: string;
+}
+
 const prisma = new PrismaClient();
 
 const getPublishedPosts = async (
@@ -1154,6 +1161,85 @@ const publishPost = async (slug: string) => {
   return publishedPost;
 };
 
+const createPublication = async (publication: Publication) => {
+  const { name, bio, avatarUrl, userId } = publication;
+
+  const createdPublication = await prisma.publication.create({
+    data: {
+      name,
+      bio,
+      avatarUrl,
+    },
+  });
+
+  await prisma.publicationToUser.create({
+    data: {
+      publicationId: createdPublication.id,
+      userId,
+      isOwner: true,
+    },
+  });
+
+  return createdPublication;
+};
+
+const getPublications = async (
+  page?: number,
+  limit?: number,
+  searchQuery?: string
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+  const publications = await prisma.publication.findMany({
+    skip,
+    take,
+    where: {
+      name: searchQuery
+        ? {
+            contains: searchQuery,
+            mode: "insensitive",
+          }
+        : undefined,
+    },
+  });
+  return publications;
+};
+
+const updatePublication = async ({
+  id,
+  name,
+  bio,
+  avatarUrl,
+}: {
+  id: number;
+  name: string;
+  bio: string;
+  avatarUrl: string;
+}) => {
+  const updatedPublication = await prisma.publication.update({
+    where: {
+      id,
+    },
+    data: {
+      name,
+      bio,
+      avatarUrl,
+    },
+  });
+
+  return updatedPublication;
+};
+
+const deletePublication = async (id: number) => {
+  const deletedPublication = await prisma.publication.delete({
+    where: {
+      id,
+    },
+  });
+
+  return deletedPublication;
+};
+
 export default {
   getPublishedPosts,
   getPostById,
@@ -1219,4 +1305,8 @@ export default {
   activateUser,
   getReportedPostByPostIdAndUserId,
   publishPost,
+  createPublication,
+  getPublications,
+  updatePublication,
+  deletePublication,
 };

@@ -60,8 +60,8 @@ model PublicationToUser {
   userId        Int
   publicationId Int
   createdAt     DateTime    @default(now())
-  user          User        @relation(references: [id], fields: [userId])
-  publication   Publication @relation(references: [id], fields: [publicationId])
+  user          User        @relation(references: [id], fields: [userId], onDelete: Cascade)
+  publication   Publication @relation(references: [id], fields: [publicationId], onDelete: Cascade)
   isOwner       Boolean     @default(false)
 
   @@unique([userId, publicationId])
