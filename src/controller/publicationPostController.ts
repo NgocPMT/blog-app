@@ -6,13 +6,19 @@ import slugify from "slug";
 const handleGetPublicationPosts = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    const { page, limit } = req.query as { page?: string; limit?: string };
+    const { page, limit, search } = req.query as {
+      page?: string;
+      limit?: string;
+      search?: string;
+    };
     const publicationId = parseInt(req.params.publicationId);
 
+    const isEmptySearch = search ? search.trim() === "" : true;
     const publicationPosts = await db.getPublicationPosts(
       publicationId,
       page ? parseInt(page) : undefined,
-      limit ? parseInt(limit) : undefined
+      limit ? parseInt(limit) : undefined,
+      isEmptySearch ? undefined : search
     );
 
     return res.json(publicationPosts);

@@ -5,11 +5,17 @@ import passport from "passport";
 const handleGetPublications = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    const { page, limit } = req.query as { page?: string; limit?: string };
+    const { page, limit, search } = req.query as {
+      page?: string;
+      limit?: string;
+      search?: string;
+    };
 
+    const isEmptySearch = search ? search.trim() === "" : true;
     const publications = await db.getPublications(
       page ? parseInt(page) : undefined,
-      limit ? parseInt(limit) : undefined
+      limit ? parseInt(limit) : undefined,
+      isEmptySearch ? undefined : search
     );
 
     return res.json(publications);
