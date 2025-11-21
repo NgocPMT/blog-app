@@ -15,6 +15,7 @@ import adminRouter from "./routes/adminRouter.js";
 import reportedPostRouter from "./routes/reportedPostRouter.js";
 import topicRouter from "./routes/topicRouter.js";
 import publicationRouter from "./routes/publicationRouter.js";
+import invitationRouter from "./routes/invitationRouter.js";
 
 const app: Express = express();
 
@@ -44,6 +45,7 @@ app.use("/admin", adminRouter);
 app.use("/reported-posts", reportedPostRouter);
 app.use("/topics", topicRouter);
 app.use("/publications", publicationRouter);
+app.use("/invitations", invitationRouter);
 app.use(routeErrorHandling);
 app.use(internalErrorHandling);
 

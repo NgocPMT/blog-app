@@ -21,6 +21,25 @@ const handleGetPublications = [
   },
 ];
 
+const handleGetInvitations = [
+  passport.authenticate("jwt", { session: false }),
+  async (req: Request, res: Response) => {
+    const { page, limit } = req.query as {
+      page?: string;
+      limit?: string;
+    };
+    const publicationId = parseInt(req.params.publicationId);
+
+    const invitations = await db.getPublicationInvitations(
+      publicationId,
+      page ? parseInt(page) : undefined,
+      limit ? parseInt(limit) : undefined
+    );
+
+    return res.json(invitations);
+  },
+];
+
 const handleGetPublicationProfile = [
   async (req: Request, res: Response) => {
     const publicationId = parseInt(req.params.publicationId);
@@ -88,6 +107,7 @@ const handleDeletePublication = [
 export default {
   handleCreatePublication,
   handleUpdatePublication,
+  handleGetInvitations,
   handleGetPublications,
   handleGetPublicationProfile,
   handleDeletePublication,

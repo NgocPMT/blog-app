@@ -12,6 +12,11 @@ publicationRouter.get(
   publicationController.handleGetPublicationProfile
 );
 
+publicationRouter.get(
+  "/:publicationId/invitations",
+  publicationController.handleGetInvitations
+);
+
 publicationRouter.post("/", publicationController.handleCreatePublication);
 
 publicationRouter.put(

@@ -678,6 +678,44 @@ const getUserStatistics = async (page: number, limit: number, id: number) => {
   return { follows, posts };
 };
 
+const getUserSavedPosts = async (
+  userId: number,
+  page?: number,
+  limit?: number
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+  const savedPosts = await prisma.savedPost.findMany({
+    skip,
+    take,
+    where: { readingList: { userId } },
+    include: {
+      post: {
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          slug: true,
+          coverImageUrl: true,
+          createdAt: true,
+          PostReaction: true,
+          postTopics: true,
+          comments: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              Profile: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  return savedPosts;
+};
+
 const getReadingListSavedPosts = async (
   id: number,
   page?: number,
@@ -1382,6 +1420,127 @@ const deletePublicationMember = async ({
   return deletedMember;
 };
 
+const createInvitation = async ({
+  publicationId,
+  inviterId,
+  inviteeId,
+}: {
+  publicationId: number;
+  inviterId: number;
+  inviteeId: number;
+}) => {
+  const createdInvitation = await prisma.publicationInvitation.create({
+    data: {
+      publicationId,
+      inviterId,
+      inviteeId,
+    },
+  });
+  return createdInvitation;
+};
+
+const getPublicationInvitations = async (
+  publicationId: number,
+  page?: number,
+  limit?: number
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+  const invitations = await prisma.publicationInvitation.findMany({
+    skip,
+    take,
+    where: { publicationId },
+    include: {
+      inviter: {
+        select: {
+          username: true,
+          email: true,
+          Profile: true,
+        },
+      },
+      invitee: {
+        select: {
+          username: true,
+          email: true,
+          Profile: true,
+        },
+      },
+    },
+  });
+  return invitations;
+};
+
+const getUserInvitations = async (
+  inviteeId: number,
+  page?: number,
+  limit?: number
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+  const invitations = await prisma.publicationInvitation.findMany({
+    skip,
+    take,
+    where: { inviteeId },
+    include: {
+      publication: true,
+      inviter: {
+        select: {
+          username: true,
+          email: true,
+          Profile: true,
+        },
+      },
+    },
+  });
+  return invitations;
+};
+
+const getInvitation = async (id: number) => {
+  const invitation = await prisma.publicationInvitation.findUnique({
+    where: { id },
+    include: {
+      publication: true,
+      inviter: {
+        select: {
+          username: true,
+          email: true,
+          Profile: true,
+        },
+      },
+    },
+  });
+  return invitation;
+};
+
+const acceptInvitation = async (id: number) => {
+  const acceptedInvitation = await prisma.publicationInvitation.update({
+    where: { id },
+    data: { status: "ACCEPTED" },
+  });
+  await prisma.publicationToUser.create({
+    data: {
+      publicationId: acceptedInvitation.publicationId,
+      userId: acceptedInvitation.inviteeId,
+    },
+  });
+  return acceptedInvitation;
+};
+
+const declineInvitation = async (id: number) => {
+  const declinedInvitation = await prisma.publicationInvitation.update({
+    where: { id },
+    data: { status: "DECLINED" },
+  });
+  return declinedInvitation;
+};
+
+const deleteInvitation = async (id: number) => {
+  const deletedInvitation = await prisma.publicationInvitation.delete({
+    where: { id },
+  });
+  return deletedInvitation;
+};
+
 export default {
   getPublishedPosts,
   getPostById,
@@ -1410,6 +1569,7 @@ export default {
   updateReadingList,
   deleteReadingList,
   getReadingListSavedPosts,
+  getUserSavedPosts,
   createSavedPost,
   deleteSavedPost,
   getUserFollowersByUsername,
@@ -1457,4 +1617,11 @@ export default {
   updatePublication,
   deletePublication,
   deletePublicationMember,
+  createInvitation,
+  getInvitation,
+  getPublicationInvitations,
+  getUserInvitations,
+  acceptInvitation,
+  declineInvitation,
+  deleteInvitation,
 };
