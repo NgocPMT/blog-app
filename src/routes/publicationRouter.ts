@@ -7,6 +7,11 @@ const publicationRouter = Router();
 
 publicationRouter.get("/", publicationController.handleGetPublications);
 
+publicationRouter.get(
+  "/:publicationId",
+  publicationController.handleGetPublicationProfile
+);
+
 publicationRouter.post("/", publicationController.handleCreatePublication);
 
 publicationRouter.put(

@@ -3,7 +3,6 @@ import db from "../db/queries.js";
 import passport from "passport";
 
 const handleGetPublications = [
-  passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
     const { page, limit, search } = req.query as {
       page?: string;
@@ -19,6 +18,16 @@ const handleGetPublications = [
     );
 
     return res.json(publications);
+  },
+];
+
+const handleGetPublicationProfile = [
+  async (req: Request, res: Response) => {
+    const publicationId = parseInt(req.params.publicationId);
+
+    const publicationProfile = await db.getPublicationProfile(publicationId);
+
+    return res.json(publicationProfile);
   },
 ];
 
@@ -80,5 +89,6 @@ export default {
   handleCreatePublication,
   handleUpdatePublication,
   handleGetPublications,
+  handleGetPublicationProfile,
   handleDeletePublication,
 };

@@ -1253,6 +1253,50 @@ const getPublicationPosts = async (
   return publicationPosts;
 };
 
+const getPublicationMembers = async (
+  publicationId: number,
+  page?: number,
+  limit?: number,
+  searchQuery?: string
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+  const members = await prisma.user.findMany({
+    skip,
+    take,
+    where: {
+      publicationToUsers: {
+        some: {
+          publicationId,
+        },
+      },
+      ...(searchQuery
+        ? {
+            OR: [
+              { username: { contains: searchQuery, mode: "insensitive" } },
+              {
+                Profile: {
+                  name: { contains: searchQuery, mode: "insensitive" },
+                },
+              },
+            ],
+          }
+        : undefined),
+    },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      publicationToUsers: {
+        where: { publicationId },
+        select: { isOwner: true },
+      },
+      Profile: true,
+    },
+  });
+  return members;
+};
+
 const updatePublication = async ({
   id,
   name,
@@ -1286,6 +1330,20 @@ const deletePublication = async (id: number) => {
   });
 
   return deletedPublication;
+};
+
+const deletePublicationMember = async ({
+  publicationId,
+  userId,
+}: {
+  publicationId: number;
+  userId: number;
+}) => {
+  const deletedMember = await prisma.publicationToUser.delete({
+    where: { userId_publicationId: { userId, publicationId } },
+  });
+
+  return deletedMember;
 };
 
 export default {
@@ -1356,7 +1414,9 @@ export default {
   createPublication,
   getPublications,
   getPublicationPosts,
+  getPublicationMembers,
   getPublicationOwner,
   updatePublication,
   deletePublication,
+  deletePublicationMember,
 };

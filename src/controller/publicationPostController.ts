@@ -4,6 +4,27 @@ import db from "../db/queries.js";
 import slugify from "slug";
 
 const handleGetPublicationPosts = [
+  async (req: Request, res: Response) => {
+    const { page, limit, search } = req.query as {
+      page?: string;
+      limit?: string;
+      search?: string;
+    };
+    const publicationId = parseInt(req.params.publicationId);
+
+    const isEmptySearch = search ? search.trim() === "" : true;
+    const posts = await db.getPublicationPosts(
+      publicationId,
+      page ? parseInt(page) : undefined,
+      limit ? parseInt(limit) : undefined,
+      isEmptySearch ? undefined : search
+    );
+
+    return res.json(posts);
+  },
+];
+
+const handleGetPublicationPendingPosts = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
     const { page, limit, search } = req.query as {
@@ -14,14 +35,14 @@ const handleGetPublicationPosts = [
     const publicationId = parseInt(req.params.publicationId);
 
     const isEmptySearch = search ? search.trim() === "" : true;
-    const publicationPosts = await db.getPublicationPosts(
+    const pendingPosts = await db.getPublicationPendingPosts(
       publicationId,
       page ? parseInt(page) : undefined,
       limit ? parseInt(limit) : undefined,
       isEmptySearch ? undefined : search
     );
 
-    return res.json(publicationPosts);
+    return res.json(pendingPosts);
   },
 ];
 
@@ -100,6 +121,7 @@ const handleDeletePublicationPost = [
 
 export default {
   handleGetPublicationPosts,
+  handleGetPublicationPendingPosts,
   handleCreatePublicationPost,
   handlePublishPublicationPost,
   handleDeletePublicationPost,

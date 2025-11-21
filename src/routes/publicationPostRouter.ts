@@ -8,6 +8,11 @@ publicationPostRouter.get(
   publicationPostController.handleGetPublicationPosts
 );
 
+publicationPostRouter.get(
+  "/pending",
+  publicationPostController.handleGetPublicationPendingPosts
+);
+
 publicationPostRouter.post(
   "/",
   publicationPostController.handleCreatePublicationPost
