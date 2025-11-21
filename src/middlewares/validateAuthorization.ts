@@ -9,7 +9,7 @@ const validateAuthorization = async (
   const userId = parseInt(req.params.userId);
   const currentUserId = (req.user as { id: number }).id;
   const userRole = (req.user as { id: number; role: string }).role;
-  if (userRole === "admin") {
+  if (userRole === "ADMIN") {
     next();
     return;
   }
@@ -24,7 +24,7 @@ const validateAdminAuthorization = async (
   next: NextFunction
 ) => {
   const userRole = (req.user as { role: string }).role;
-  if (userRole !== "admin") {
+  if (userRole !== "ADMIN") {
     return res.status(403).json({ error: "Forbidden" });
   }
   next();
@@ -52,7 +52,7 @@ const validatePostAuthorization = async (
   if (!post) return res.status(404).json({ error: "Post not found" });
   const userId = (req.user as { id: number }).id;
   const userRole = (req.user as { id: number; role: string }).role;
-  if (userRole === "admin") {
+  if (userRole === "ADMIN") {
     next();
     return;
   }
@@ -71,7 +71,7 @@ const validatePostAuthorizationBySlug = async (
   if (!post) return res.status(404).json({ error: "Post not found" });
   const userId = (req.user as { id: number }).id;
   const userRole = (req.user as { id: number; role: string }).role;
-  if (userRole === "admin") {
+  if (userRole === "ADMIN") {
     next();
     return;
   }
@@ -93,7 +93,7 @@ const validateCommentAuthorization = async (
 
   const userId = (req.user as { id: number; role: string }).id;
   const userRole = (req.user as { id: number; role: string }).role;
-  if (userRole === "admin") {
+  if (userRole === "ADMIN") {
     next();
     return;
   }
