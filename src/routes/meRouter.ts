@@ -4,6 +4,8 @@ import readingListRouter from "./readingListRouter.js";
 
 const meRouter = Router();
 
+meRouter.delete("/", meController.handleDeleteAccount);
+
 meRouter.get("/profile", meController.handleGetSelfProfile);
 
 meRouter.put("/profile", meController.handleUpdateSelfProfile);

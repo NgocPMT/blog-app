@@ -1109,6 +1109,12 @@ const getReportedPosts = async (
   return reportedPosts;
 };
 
+const deleteUser = async (id: number) => {
+  await prisma.user.delete({
+    where: { id },
+  });
+};
+
 const getUsers = async (
   page?: number,
   limit?: number,
@@ -1624,4 +1630,5 @@ export default {
   acceptInvitation,
   declineInvitation,
   deleteInvitation,
+  deleteUser,
 };

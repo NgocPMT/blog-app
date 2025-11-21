@@ -27,6 +27,14 @@ const handleGetSelfProfile = [
   },
 ];
 
+const handleDeleteAccount = [
+  passport.authenticate("jwt", { session: false }),
+  async (req: Request, res: Response) => {
+    const userId = (req.user as { id: number }).id;
+    await db.deleteUser(userId);
+  },
+];
+
 const handleGetSelfInformation = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
@@ -359,4 +367,5 @@ export default {
   handlePublishPost,
   handleGetSelfSavedPosts,
   handleGetSelfInvitations,
+  handleDeleteAccount,
 };
