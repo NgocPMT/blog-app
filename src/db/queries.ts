@@ -1217,6 +1217,16 @@ const getPublications = async (
   return publications;
 };
 
+const getPublicationProfile = async (id: number) => {
+  const publication = await prisma.publication.findUnique({
+    where: { id },
+    include: {
+      publicationFollows: true,
+    },
+  });
+  return publication;
+};
+
 const getPublicationOwner = async (publicationId: number) => {
   const publication = await prisma.publicationToUser.findFirst({
     where: {
@@ -1241,6 +1251,32 @@ const getPublicationPosts = async (
     skip,
     take,
     where: {
+      status: "PUBLISHED",
+      publicationId,
+      title: searchQuery
+        ? {
+            contains: searchQuery,
+            mode: "insensitive",
+          }
+        : undefined,
+    },
+  });
+  return publicationPosts;
+};
+
+const getPublicationPendingPosts = async (
+  publicationId: number,
+  page?: number,
+  limit?: number,
+  searchQuery?: string
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+  const publicationPosts = await prisma.post.findMany({
+    skip,
+    take,
+    where: {
+      status: "PENDING",
       publicationId,
       title: searchQuery
         ? {
@@ -1413,6 +1449,8 @@ export default {
   publishPost,
   createPublication,
   getPublications,
+  getPublicationProfile,
+  getPublicationPendingPosts,
   getPublicationPosts,
   getPublicationMembers,
   getPublicationOwner,
