@@ -3,6 +3,8 @@ import userController from "../controller/userController.js";
 
 const userRouter = Router();
 
+userRouter.get("/", userController.handleGetUsers);
+
 userRouter.get("/user/:userId", userController.handleGetUserInformation);
 
 userRouter.get(

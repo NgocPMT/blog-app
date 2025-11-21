@@ -1115,6 +1115,34 @@ const deleteUser = async (id: number) => {
   });
 };
 
+const getSafeUsers = async (
+  page?: number,
+  limit?: number,
+  searchQuery?: string
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+
+  const users = await prisma.user.findMany({
+    skip,
+    take,
+    where: {
+      username: searchQuery
+        ? {
+            contains: searchQuery,
+            mode: "insensitive",
+          }
+        : undefined,
+    },
+    include: {
+      Profile: true,
+    },
+    omit: { password: true, isActive: true, role: true, createdAt: true },
+  });
+
+  return users;
+};
+
 const getUsers = async (
   page?: number,
   limit?: number,
@@ -1606,6 +1634,7 @@ export default {
   createReportedPost,
   deleteReportedPost,
   getUsers,
+  getSafeUsers,
   markFirst15NotificationsAsRead,
   getUserDraftPosts,
   getUserPublishedPosts,

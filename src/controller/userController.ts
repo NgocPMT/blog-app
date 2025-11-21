@@ -9,6 +9,22 @@ import {
 import validate from "../middlewares/validate.js";
 import { validateAuthorization } from "../middlewares/validateAuthorization.js";
 
+const handleGetUsers = async (req: Request, res: Response) => {
+  const { page, limit, search } = req.query as {
+    page?: string;
+    limit?: string;
+    search?: string;
+  };
+  const isEmptySearch = search ? search.trim() === "" : true;
+  const users = await db.getSafeUsers(
+    page ? parseInt(page) : undefined,
+    limit ? parseInt(limit) : undefined,
+    isEmptySearch ? undefined : search
+  );
+
+  return res.json(users);
+};
+
 const handleGetUserInformation: RequestHandler[] = [
   passport.authenticate("jwt", { session: false }),
   validateAuthorization,
@@ -91,4 +107,5 @@ export default {
   handleGetUserProfileByUsername,
   handleGetUserFollowersByUsername,
   handleGetUserFollowingsByUsername,
+  handleGetUsers,
 };
