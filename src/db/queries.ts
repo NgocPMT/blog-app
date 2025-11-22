@@ -309,8 +309,30 @@ const getPostById = async (id: number) => {
   return post ?? null;
 };
 
-const getTopics = async () => {
-  const topics = await prisma.topic.findMany({});
+const getTopics = async (
+  page?: number,
+  limit?: number,
+  searchQuery?: string
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+  const topics = await prisma.topic.findMany({
+    skip,
+    take,
+    where: {
+      name: searchQuery
+        ? {
+            contains: searchQuery,
+            mode: "insensitive",
+          }
+        : undefined,
+    },
+    include: {
+      _count: {
+        select: { postTopics: true },
+      },
+    },
+  });
   return topics;
 };
 

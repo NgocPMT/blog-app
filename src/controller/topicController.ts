@@ -5,7 +5,17 @@ import db from "../db/queries.js";
 const handleGetTopics = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
-    const topics = await db.getTopics();
+    const { page, limit, search } = req.query as {
+      page?: string;
+      limit?: string;
+      search?: string;
+    };
+    const isEmptySearch = search ? search.trim() === "" : true;
+    const topics = await db.getTopics(
+      page ? parseInt(page) : undefined,
+      limit ? parseInt(limit) : undefined,
+      isEmptySearch ? undefined : search
+    );
     return res.json(topics);
   },
 ];
