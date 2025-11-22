@@ -95,7 +95,7 @@ const handleGetSelfInvitations = [
     };
     const userId = (req.user as { id: number }).id;
 
-    const invitations = await db.getPublicationInvitations(
+    const invitations = await db.getUserInvitations(
       userId,
       page ? parseInt(page) : undefined,
       limit ? parseInt(limit) : undefined
