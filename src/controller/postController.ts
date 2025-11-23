@@ -70,15 +70,6 @@ const handleUpdatePost: RequestHandler[] = [
     };
     const parsedContent = JSON.parse(content);
 
-    const userId = (req.user as { id: number }).id;
-
-    const duplicatePost = await db.getPostByTitleAndUserId(title, userId);
-
-    if (duplicatePost)
-      return res
-        .status(400)
-        .json({ error: "Post with this title already existed on this user" });
-
     let slug = slugify(title, { lower: true });
 
     const isSlugUnique = !db.doesSlugExist(slug);

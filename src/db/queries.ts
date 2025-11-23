@@ -72,6 +72,16 @@ const getPublishedPosts = async (
           'username', u.username,
           'Profile', (SELECT row_to_json(prof.*) FROM "Profile" prof WHERE prof."userId" = u.id)
         ) as user,
+         (
+          SELECT json_build_object(
+            'id', pub.id,
+            'name', pub.name,
+            'bio', pub.bio,
+            'avatarUrl', pub."avatarUrl"
+          )
+          FROM "Publication" pub
+          WHERE pub.id = p."publicationId"
+        ) AS publication,
         COALESCE((
           SELECT json_agg(pr.*)
           FROM "PostReaction" pr
@@ -1311,6 +1321,32 @@ const getPublications = async (
   return publications;
 };
 
+const getUserPublications = async (
+  userId: number,
+  page?: number,
+  limit?: number,
+  searchQuery?: string
+) => {
+  const skip = page && limit ? (page - 1) * limit : 0;
+  const take = limit || undefined;
+  const publications = await prisma.publication.findMany({
+    skip,
+    take,
+    where: {
+      publicationToUsers: {
+        some: { userId },
+      },
+      name: searchQuery
+        ? {
+            contains: searchQuery,
+            mode: "insensitive",
+          }
+        : undefined,
+    },
+  });
+  return publications;
+};
+
 const getPublicationProfile = async (id: number) => {
   const publication = await prisma.publication.findUnique({
     where: { id },
@@ -1666,6 +1702,7 @@ export default {
   publishPost,
   createPublication,
   getPublications,
+  getUserPublications,
   getPublicationProfile,
   getPublicationPendingPosts,
   getPublicationPosts,
