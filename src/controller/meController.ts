@@ -86,6 +86,28 @@ const handleGetSelfStatistics = [
   },
 ];
 
+const handleGetSelfPublications = [
+  passport.authenticate("jwt", { session: false }),
+  async (req: Request, res: Response) => {
+    const { page, limit, search } = req.query as {
+      page?: string;
+      limit?: string;
+      search?: string;
+    };
+    const userId = (req.user as { id: number }).id;
+
+    const isEmptySearch = search ? search.trim() === "" : true;
+    const publications = await db.getUserPublications(
+      userId,
+      page ? parseInt(page) : undefined,
+      limit ? parseInt(limit) : undefined,
+      isEmptySearch ? undefined : search
+    );
+
+    return res.json(publications);
+  },
+];
+
 const handleGetSelfInvitations = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
@@ -368,4 +390,5 @@ export default {
   handleGetSelfSavedPosts,
   handleGetSelfInvitations,
   handleDeleteAccount,
+  handleGetSelfPublications,
 };

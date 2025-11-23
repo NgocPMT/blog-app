@@ -376,9 +376,55 @@ const deleteTopic = async (id: number) => {
   return deletedTopic;
 };
 
-const getReactionTypes = async () => {
-  const reactions = await prisma.reactionType.findMany();
+const getReactionTypes = async (searchQuery?: string) => {
+  const reactions = await prisma.reactionType.findMany({
+    where: {
+      name: searchQuery ? searchQuery : undefined,
+    },
+  });
   return reactions;
+};
+
+const createReactionType = async ({
+  name,
+  reactionImageUrl,
+}: {
+  name: string;
+  reactionImageUrl: string;
+}) => {
+  const createdReaction = await prisma.reactionType.create({
+    data: {
+      name,
+      reactionImageUrl,
+    },
+  });
+  return createdReaction;
+};
+
+const updateReactionType = async ({
+  id,
+  name,
+  reactionImageUrl,
+}: {
+  id: number;
+  name: string;
+  reactionImageUrl: string;
+}) => {
+  const updatedReaction = await prisma.reactionType.update({
+    where: { id },
+    data: {
+      name,
+      reactionImageUrl,
+    },
+  });
+  return updatedReaction;
+};
+
+const deleteReactionType = async (id: number) => {
+  const deletedReaction = await prisma.reactionType.delete({
+    where: { id },
+  });
+  return deletedReaction;
 };
 
 const getReactionTypeById = async (id: number) => {
@@ -1678,12 +1724,15 @@ export default {
   reactPost,
   unreactPost,
   getReactionTypeById,
+  getReactionTypes,
+  createReactionType,
+  updateReactionType,
+  deleteReactionType,
   isReacted,
   followUser,
   unfollowUser,
   getUserByFollowingIdAndUserId,
   getSavedPostByPostIdAndReadingListId,
-  getReactionTypes,
   createNotification,
   getUserByPostId,
   createPostView,

@@ -12,6 +12,8 @@ meRouter.put("/profile", meController.handleUpdateSelfProfile);
 
 meRouter.get("/notifications", meController.handleGetSelfNotifications);
 
+meRouter.get("/publications", meController.handleGetSelfPublications);
+
 meRouter.get("/invitations", meController.handleGetSelfInvitations);
 
 meRouter.put("/notifications/read", meController.handleMarkSelfNotification);
