@@ -131,8 +131,10 @@ const getPublishedPosts = async (
     where: { status: "PUBLISHED" },
     include: {
       user: {
-        include: {
+        select: {
+          id: true,
           Profile: true,
+          username: true,
         },
       },
       PostReaction: true,
@@ -1436,6 +1438,15 @@ const getPublicationPosts = async (
           }
         : undefined,
     },
+    include: {
+      user: {
+        select: {
+          id: true,
+          Profile: true,
+          username: true,
+        },
+      },
+    },
   });
   return publicationPosts;
 };
@@ -1460,6 +1471,15 @@ const getPublicationPendingPosts = async (
             mode: "insensitive",
           }
         : undefined,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          Profile: true,
+          username: true,
+        },
+      },
     },
   });
   return publicationPosts;
