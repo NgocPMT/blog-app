@@ -5,10 +5,10 @@ import {
   postValidation,
   postParamValidation,
   postQueryValidation,
-  reactionValidation,
   slugParamValidation,
   postUpdateValidation,
   postSavingValidation,
+  reactionIdValidation,
 } from "../validation/validation.js";
 import {
   validatePostAuthorization,
@@ -224,7 +224,7 @@ const handleSavePostToDrafts = [
 const handleReactPost = [
   passport.authenticate("jwt", { session: false }),
   ...validate(postParamValidation),
-  ...validate(reactionValidation),
+  ...validate(reactionIdValidation),
   async (req: Request, res: Response) => {
     if (!req.user)
       return res
