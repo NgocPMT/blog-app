@@ -137,6 +137,7 @@ const getPublishedPosts = async (
           username: true,
         },
       },
+      publication: true,
       PostReaction: true,
       PostView: true,
       postTopics: true,
@@ -162,6 +163,7 @@ const getPostBySlug = async (slug: string) => {
           reactionType: true,
         },
       },
+      publication: true,
       PostView: true,
       postTopics: true,
       comments: true,
@@ -781,6 +783,7 @@ const getUserSavedPosts = async (
           PostReaction: true,
           postTopics: true,
           comments: true,
+          publication: true,
           user: {
             select: {
               id: true,
@@ -1015,6 +1018,7 @@ const getUserPostsByUsername = async (
           Profile: true,
         },
       },
+      publication: true,
       PostReaction: true,
       postTopics: true,
       PostView: true,
@@ -1446,6 +1450,7 @@ const getPublicationPosts = async (
           username: true,
         },
       },
+      publication: true,
     },
   });
   return publicationPosts;
@@ -1480,6 +1485,7 @@ const getPublicationPendingPosts = async (
           username: true,
         },
       },
+      publication: true,
     },
   });
   return publicationPosts;
