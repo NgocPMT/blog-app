@@ -385,8 +385,16 @@ const getReactionTypes = async (searchQuery?: string) => {
     where: {
       name: searchQuery ? searchQuery : undefined,
     },
+    include: {
+      _count: { select: { PostReaction: true } },
+    },
   });
   return reactions;
+};
+
+const getReactionTypeByName = async (name: string) => {
+  const reaction = await prisma.reactionType.findUnique({ where: { name } });
+  return reaction || null;
 };
 
 const createReactionType = async ({
@@ -1750,6 +1758,7 @@ export default {
   reactPost,
   unreactPost,
   getReactionTypeById,
+  getReactionTypeByName,
   getReactionTypes,
   createReactionType,
   updateReactionType,

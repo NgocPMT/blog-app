@@ -114,7 +114,7 @@ const profileValidation: ValidationChain[] = [
     .withMessage("Name must be under 160 characters!"),
 ];
 
-const reactionValidation: ValidationChain[] = [
+const reactionIdValidation: ValidationChain[] = [
   body("reactionTypeId")
     .isInt()
     .withMessage("Reaction ID must be an integer!")
@@ -133,6 +133,35 @@ const reactionValidation: ValidationChain[] = [
       );
       if (!reactionType) throw new Error("Reaction doesn't exist");
     }),
+];
+
+const reactionIdParamValidation: ValidationChain[] = [
+  param("reactionId")
+    .isInt()
+    .withMessage("Reaction ID must be an integer!")
+    .bail()
+    .toInt()
+    .custom((reactionTypeId, { req }) => {
+      if (typeof reactionTypeId !== "number") {
+        throw new Error("Reaction ID must be a number, not a string!");
+      }
+      return true;
+    })
+    .bail()
+    .custom(async (reactionTypeId: string) => {
+      const reactionType = await db.getReactionTypeById(
+        parseInt(reactionTypeId)
+      );
+      if (!reactionType) throw new Error("Reaction doesn't exist");
+    }),
+];
+
+const reactionValidation: ValidationChain[] = [
+  body("name").trim().notEmpty().withMessage(`Name ${emptyErr}`),
+  body("reactionImageUrl")
+    .trim()
+    .notEmpty()
+    .withMessage(`Reaction ${emptyErr}`),
 ];
 
 const commentValidation: ValidationChain[] = [
@@ -274,6 +303,8 @@ export {
   userIdParamValidation,
   usernameParamValidation,
   profileValidation,
+  reactionIdValidation,
+  reactionIdParamValidation,
   reactionValidation,
   postIdValidation,
   followingIdValidation,
@@ -293,6 +324,8 @@ export default {
   postParamValidation,
   postIdValidation,
   profileValidation,
+  reactionIdValidation,
+  reactionIdParamValidation,
   reactionValidation,
   followingIdValidation,
   followingIdParamValidation,
