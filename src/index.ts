@@ -16,6 +16,7 @@ import reportedPostRouter from "./routes/reportedPostRouter.js";
 import topicRouter from "./routes/topicRouter.js";
 import publicationRouter from "./routes/publicationRouter.js";
 import invitationRouter from "./routes/invitationRouter.js";
+import writingAssistantRouter from "./routes/writingAssistantRouter.js";
 
 const app: Express = express();
 
@@ -46,6 +47,7 @@ app.use("/reported-posts", reportedPostRouter);
 app.use("/topics", topicRouter);
 app.use("/publications", publicationRouter);
 app.use("/invitations", invitationRouter);
+app.use("/writing-assistant", writingAssistantRouter);
 app.use(routeErrorHandling);
 app.use(internalErrorHandling);
 

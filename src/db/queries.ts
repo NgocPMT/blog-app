@@ -380,11 +380,8 @@ const deleteTopic = async (id: number) => {
   return deletedTopic;
 };
 
-const getReactionTypes = async (searchQuery?: string) => {
+const getReactionTypes = async () => {
   const reactions = await prisma.reactionType.findMany({
-    where: {
-      name: searchQuery ? searchQuery : undefined,
-    },
     include: {
       _count: { select: { PostReaction: true } },
     },
