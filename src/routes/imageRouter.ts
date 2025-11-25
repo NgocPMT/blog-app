@@ -7,4 +7,6 @@ imageRouter.post("/upload", imageController.handleUploadPostImage);
 
 imageRouter.post("/upload-avatar", imageController.handleUploadAvatar);
 
+imageRouter.post("/upload-reaction", imageController.handleUploadReaction);
+
 export default imageRouter;

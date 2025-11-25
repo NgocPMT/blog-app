@@ -58,4 +58,31 @@ const handleUploadAvatar = [
   },
 ];
 
-export default { handleUploadAvatar, handleUploadPostImage };
+const handleUploadReaction = [
+  upload.single("file"),
+  async (req: Request, res: Response) => {
+    const file = req.file;
+    if (!file) {
+      throw new Error("Missing file.");
+    }
+    const fileName = `${Date.now()}-${file.originalname}`;
+
+    const { error } = await supabase.storage
+      .from("reactions")
+      .upload(fileName, file.buffer, { contentType: file.mimetype });
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("reactions").getPublicUrl(fileName);
+
+    return res.json({ url: publicUrl });
+  },
+];
+
+export default {
+  handleUploadAvatar,
+  handleUploadPostImage,
+  handleUploadReaction,
+};
