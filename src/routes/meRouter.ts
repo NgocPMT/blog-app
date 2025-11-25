@@ -36,6 +36,8 @@ meRouter.get("/published-posts", meController.handleGetSelfPublishedPosts);
 
 meRouter.get("/draft-posts", meController.handleGetSelfDraftPosts);
 
+meRouter.get("/pending-posts", meController.handleGetSelfPendingPosts);
+
 meRouter.put("/draft-posts/:slug/publish", meController.handlePublishPost);
 
 meRouter.use("/reading-lists", readingListRouter);
