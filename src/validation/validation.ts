@@ -300,9 +300,9 @@ const readingListIdParamValidation: ValidationChain[] = [
 ];
 
 const publicationIdParamValidation: ValidationChain[] = [
-  param("readingListId")
+  param("publicationId")
     .isInt()
-    .withMessage("Reading List ID must be an integer!")
+    .withMessage("Publication ID must be an integer!")
     .bail(),
 ];
 
