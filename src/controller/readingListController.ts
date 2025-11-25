@@ -32,10 +32,10 @@ const handleUpdateReadingList = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
     const { name } = req.body;
-    const { ReadingListId } = req.params;
+    const { readingListId } = req.params;
 
     const updatedReadingList = await db.updateReadingList({
-      id: parseInt(ReadingListId),
+      id: parseInt(readingListId),
       name,
     });
 
