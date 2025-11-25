@@ -82,9 +82,13 @@ const handleUpdatePost: RequestHandler[] = [
 
     const oldTopics = post.postTopics.map((topic) => topic.topicId);
 
-    const topicsToAdd = topics.filter((topic) => !oldTopics?.includes(topic));
+    const topicsToAdd = topics
+      ? topics.filter((topic) => !oldTopics?.includes(topic))
+      : undefined;
 
-    const topicsToRemove = oldTopics.filter((topic) => !topics.includes(topic));
+    const topicsToRemove = topics
+      ? oldTopics.filter((topic) => !topics.includes(topic))
+      : undefined;
 
     await db.updatePost({
       id,
@@ -289,7 +293,9 @@ const handleViewPost = [
     const { slug } = req.params;
 
     const userId = (req.user as { id: number }).id;
-    const isViewed = await db.isViewed({ slug, userId });
+    const post = await db.getPostBySlug(slug);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    const isViewed = await db.isViewed({ id: post.id, userId });
 
     if (isViewed)
       return res

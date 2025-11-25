@@ -670,9 +670,9 @@ const createPostView = async ({
   return postView;
 };
 
-const isViewed = async ({ slug, userId }: { slug: string; userId: number }) => {
+const isViewed = async ({ id, userId }: { id: number; userId: number }) => {
   const post = await prisma.post.findUnique({
-    where: { slug },
+    where: { id },
     select: {
       id: true,
     },
