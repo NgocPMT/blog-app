@@ -12,24 +12,24 @@ model User {
   username             String                  @unique
   email                String                  @unique
   password             String
-  role                 UserRole                @default(USER)
   createdAt            DateTime                @default(now())
   isActive             Boolean                 @default(true)
+  role                 UserRole                @default(USER)
   comments             Comment[]
-  notificationsAsUser  Notification[]          @relation("UserAsOwner")
   NotificationsAsActor Notification[]          @relation("UserAsActor")
+  notificationsAsUser  Notification[]          @relation("UserAsOwner")
   posts                Post[]
   PostReaction         PostReaction[]
   PostView             PostView[]
   Profile              Profile?
+  publicationFollows   PublicationFollow[]
+  receivedInvitations  PublicationInvitation[] @relation("InviteeRelation")
+  sentInvitations      PublicationInvitation[] @relation("InviterRelation")
+  publicationToUsers   PublicationToUser[]
+  readingList          ReadingList[]
   ReportedPosts        ReportedPosts[]
   followedBy           UserFollows[]           @relation("followedBy")
   following            UserFollows[]           @relation("following")
-  readingList          ReadingList[]
-  publicationToUsers   PublicationToUser[]
-  sentInvitations      PublicationInvitation[] @relation("InviterRelation")
-  receivedInvitations  PublicationInvitation[] @relation("InviteeRelation")
-  publicationFollows   PublicationFollow[]
 
   @@index([email])
   @@index([username])
@@ -38,20 +38,20 @@ model User {
 model Publication {
   id                     Int                     @id @default(autoincrement())
   name                   String
-  bio                    String?
   avatarUrl              String?
+  bio                    String?
   posts                  Post[]
-  publicationToUsers     PublicationToUser[]
-  publicationInvitations PublicationInvitation[]
   publicationFollows     PublicationFollow[]
+  publicationInvitations PublicationInvitation[]
+  publicationToUsers     PublicationToUser[]
 }
 
 model PublicationFollow {
   publicationId Int
   userId        Int
   followAt      DateTime    @default(now())
-  publication   Publication @relation(references: [id], fields: [publicationId], onDelete: Cascade)
-  user          User        @relation(references: [id], fields: [userId], onDelete: Cascade)
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([publicationId, userId])
 }
@@ -60,26 +60,25 @@ model PublicationToUser {
   userId        Int
   publicationId Int
   createdAt     DateTime    @default(now())
-  user          User        @relation(references: [id], fields: [userId], onDelete: Cascade)
-  publication   Publication @relation(references: [id], fields: [publicationId], onDelete: Cascade)
   isOwner       Boolean     @default(false)
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, publicationId])
 }
 
 model PublicationInvitation {
-  id            Int          @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   publicationId Int
   inviterId     Int
   inviteeId     Int
-  status        InviteStatus @default(PENDING)
-  createdAt     DateTime     @default(now())
+  status        InviteStatus   @default(PENDING)
+  createdAt     DateTime       @default(now())
   respondedAt   DateTime?
-
-  publication   Publication    @relation(fields: [publicationId], references: [id])
-  inviter       User           @relation("InviterRelation", fields: [inviterId], references: [id])
-  invitee       User           @relation("InviteeRelation", fields: [inviteeId], references: [id])
   notifications Notification[]
+  invitee       User           @relation("InviteeRelation", fields: [inviteeId], references: [id])
+  inviter       User           @relation("InviterRelation", fields: [inviterId], references: [id])
+  publication   Publication    @relation(fields: [publicationId], references: [id])
 }
 
 model UserFollows {
@@ -102,20 +101,19 @@ model Profile {
 }
 
 model Notification {
-  id      Int              @id @default(autoincrement())
-  userId  Int
-  type    NotificationType
-  message String
-  isRead  Boolean          @default(false)
-  postId  Int?
-
+  id                      Int                    @id @default(autoincrement())
+  userId                  Int
+  type                    NotificationType
+  message                 String
+  isRead                  Boolean                @default(false)
   createdAt               DateTime               @default(now())
   actorId                 Int
-  user                    User                   @relation("UserAsOwner", fields: [userId], references: [id], onDelete: Cascade)
-  actor                   User                   @relation("UserAsActor", fields: [actorId], references: [id], onDelete: Cascade)
+  postId                  Int?
   publicationInvitationId Int?
-  publicationInvitation   PublicationInvitation? @relation(fields: [publicationInvitationId], references: [id])
+  actor                   User                   @relation("UserAsActor", fields: [actorId], references: [id], onDelete: Cascade)
   post                    Post?                  @relation(fields: [postId], references: [id])
+  publicationInvitation   PublicationInvitation? @relation(fields: [publicationInvitationId], references: [id])
+  user                    User                   @relation("UserAsOwner", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
 }
@@ -145,9 +143,9 @@ model SavedPost {
 
 model ReadingList {
   id         Int         @id @default(autoincrement())
-  name       String
-  createdAt  DateTime    @default(now())
   userId     Int
+  createdAt  DateTime    @default(now())
+  name       String
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   savedPosts SavedPost[]
 
@@ -155,26 +153,25 @@ model ReadingList {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    Int
-
+  id            Int             @id @default(autoincrement())
+  title         String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  userId        Int
+  publicationId Int?
   coverImageUrl String?
   status        PostStatus      @default(DRAFT)
   content       Json
   slug          String          @unique
   comments      Comment[]
+  notifications Notification[]
+  publication   Publication?    @relation(fields: [publicationId], references: [id])
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   PostReaction  PostReaction[]
+  postTopics    PostTopic[]
   PostView      PostView[]
   ReportedPosts ReportedPosts[]
-  postTopics    PostTopic[]
-  publicationId Int?
-  publication   Publication?    @relation(references: [id], fields: [publicationId], onDelete: SetNull)
   SavedPosts    SavedPost[]
-  notifications Notification[]
 
   @@unique([title, userId])
   @@index([userId])

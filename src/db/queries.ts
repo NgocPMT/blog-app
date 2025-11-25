@@ -58,69 +58,91 @@ const getPublishedPosts = async (
 ) => {
   if (searchQuery) {
     const posts = await prisma.$queryRaw`
-      SELECT 
-        p.id, 
-        p.title, 
-        p.content, 
-        p."coverImageUrl", 
-        p.slug, 
-        p."createdAt",
-        p."userId",
-        json_build_object(
-          'id', u.id,
-          'email', u.email,
-          'username', u.username,
-          'Profile', (SELECT row_to_json(prof.*) FROM "Profile" prof WHERE prof."userId" = u.id)
-        ) as user,
-         (
-          SELECT json_build_object(
-            'id', pub.id,
-            'name', pub.name,
-            'bio', pub.bio,
-            'avatarUrl', pub."avatarUrl"
-          )
-          FROM "Publication" pub
-          WHERE pub.id = p."publicationId"
-        ) AS publication,
-        COALESCE((
-          SELECT json_agg(pr.*)
-          FROM "PostReaction" pr
-          WHERE pr."postId" = p.id
-        ), '[]'::json) as "PostReaction",
-        COALESCE((
-          SELECT json_agg(pt.*)
-          FROM "postTopics" pt
-          WHERE pt."postId" = p.id
-        ), '[]'::json) as "postTopics",
-        COALESCE((
-          SELECT json_agg(pv.*)
-          FROM "PostView" pv
-          WHERE pv."postId" = p.id
-        ), '[]'::json) as "PostView",
-        COALESCE((
-          SELECT json_agg(c.*)
-          FROM "Comment" c
-          WHERE c."postId" = p.id
-        ), '[]'::json) as comments,
-        -- Calculate relevance score using TEXT fields only
-        (
-          similarity(p.title::text, ${searchQuery}) * 3 +
-          similarity(u.username::text, ${searchQuery}) * 2
-        ) as relevance_score
-      FROM "Post" p
-      INNER JOIN "User" u ON p."userId" = u.id
-      WHERE 
-        p.status = 'PUBLISHED' AND u."isActive" = true
-        AND (
-          p.title ILIKE ${"%" + searchQuery + "%"}
-          OR u.username ILIKE ${"%" + searchQuery + "%"}
-          OR p.title % ${searchQuery}
-          OR u.username % ${searchQuery}
-        )
-      ORDER BY relevance_score DESC, p."createdAt" DESC
-      LIMIT ${limit}
-      OFFSET ${(page - 1) * limit}
-    `;
+  SELECT 
+    p.id, 
+    p.title, 
+    p.content, 
+    p."coverImageUrl", 
+    p.slug, 
+    p."createdAt",
+    p."userId",
+    json_build_object(
+      'id', u.id,
+      'email', u.email,
+      'username', u.username,
+      'Profile', (SELECT row_to_json(prof.*) FROM "Profile" prof WHERE prof."userId" = u.id)
+    ) as user,
+    (
+      SELECT json_build_object(
+        'id', pub.id,
+        'name', pub.name,
+        'bio', pub.bio,
+        'avatarUrl', pub."avatarUrl"
+      )
+      FROM "Publication" pub
+      WHERE pub.id = p."publicationId"
+    ) AS publication,
+
+    -- Join relations
+    COALESCE((
+      SELECT json_agg(pr.*)
+      FROM "PostReaction" pr
+      WHERE pr."postId" = p.id
+    ), '[]'::json) as "PostReaction",
+
+    COALESCE((
+      SELECT json_agg(pt.*)
+      FROM "PostTopic" pt
+      WHERE pt."postId" = p.id
+    ), '[]'::json) as "postTopics",
+
+    COALESCE((
+      SELECT json_agg(pv.*)
+      FROM "PostView" pv
+      WHERE pv."postId" = p.id
+    ), '[]'::json) as "PostView",
+
+    COALESCE((
+      SELECT json_agg(c.*)
+      FROM "Comment" c
+      WHERE c."postId" = p.id
+    ), '[]'::json) as comments,
+
+    -- 👇 Add relevance for topic similarity = weight 1
+    (
+      similarity(p.title::text, ${searchQuery}::text) * 3 +
+      similarity(u.username::text, ${searchQuery}::text) * 2 +
+      COALESCE((
+        SELECT MAX(similarity(t.name::text, ${searchQuery}::text))
+        FROM "PostTopic" pt
+        JOIN "Topic" t ON t.id = pt."topicId"
+        WHERE pt."postId" = p.id
+      ), 0) * 1
+    ) AS relevance_score
+
+  FROM "Post" p
+  INNER JOIN "User" u ON u.id = p."userId"
+
+  LEFT JOIN "PostTopic" pt2 ON pt2."postId" = p.id
+  LEFT JOIN "Topic" t2 ON t2.id = pt2."topicId"
+
+  WHERE 
+    p.status = 'PUBLISHED'
+    AND u."isActive" = true
+    AND (
+      p.title ILIKE ${"%" + searchQuery + "%"} OR
+      u.username ILIKE ${"%" + searchQuery + "%"} OR
+      t2.name ILIKE ${"%" + searchQuery + "%"} OR
+      p.title % ${searchQuery} OR
+      u.username % ${searchQuery} OR
+      t2.name % ${searchQuery}
+    )
+
+  GROUP BY p.id, u.id
+  ORDER BY relevance_score DESC, p."createdAt" DESC
+  LIMIT ${limit}
+  OFFSET ${(page - 1) * limit}
+`;
 
     return posts;
   }
