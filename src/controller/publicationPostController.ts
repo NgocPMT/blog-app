@@ -2,6 +2,8 @@ import passport from "passport";
 import type { Request, Response } from "express";
 import db from "../db/queries.js";
 import slugify from "slug";
+import validate from "../middlewares/validate.js";
+import { postValidation } from "../validation/validation.js";
 
 const handleGetPublicationPosts = [
   async (req: Request, res: Response) => {
@@ -33,6 +35,16 @@ const handleGetPublicationPendingPosts = [
       search?: string;
     };
     const publicationId = parseInt(req.params.publicationId);
+    const currentUserId = (req.user as { id: number }).id;
+
+    const publication = await db.getPublicationOwner(publicationId);
+
+    if (!publication)
+      return res.status(404).json({ error: "Publication not found" });
+    if (publication.user.id !== currentUserId)
+      return res.status(403).json({
+        error: "You're not the owner of this publication to do this action",
+      });
 
     const isEmptySearch = search ? search.trim() === "" : true;
     const pendingPosts = await db.getPublicationPendingPosts(
@@ -48,6 +60,7 @@ const handleGetPublicationPendingPosts = [
 
 const handleCreatePublicationPost = [
   passport.authenticate("jwt", { session: false }),
+  ...validate(postValidation),
   async (req: Request, res: Response) => {
     if (!req.user)
       return res.status(401).json({ error: "You must login to create a post" });
@@ -60,6 +73,17 @@ const handleCreatePublicationPost = [
     };
 
     const publicationId = parseInt(req.params.publicationId);
+    const publication = await db.getPublicationOwner(publicationId);
+
+    if (!publication)
+      return res.status(404).json({ error: "Publication not found" });
+    const userId = (req.user as { id: number }).id;
+
+    const member = await db.getMember({ publicationId, userId });
+    if (!member)
+      return res
+        .status(403)
+        .json({ error: "You're not a member of this publication" });
 
     const parsedContent = JSON.parse(content);
 
@@ -71,7 +95,6 @@ const handleCreatePublicationPost = [
       slug = `${slug}-${Date.now()}`;
     }
 
-    const userId = (req.user as { id: number }).id;
     const createdPost = await db.createPost({
       title,
       content: parsedContent,
@@ -90,6 +113,18 @@ const handlePublishPublicationPost = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
     const { slug } = req.params;
+
+    const publicationId = parseInt(req.params.publicationId);
+    const currentUserId = (req.user as { id: number }).id;
+
+    const publication = await db.getPublicationOwner(publicationId);
+
+    if (!publication)
+      return res.status(404).json({ error: "Publication not found" });
+    if (publication.user.id !== currentUserId)
+      return res.status(403).json({
+        error: "You're not the owner of this publication to do this action",
+      });
 
     const publishedPost = await db.publishPost(slug);
 
@@ -112,6 +147,17 @@ const handlePublishPublicationPost = [
 const handleDeletePublicationPost = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
+    const publicationId = parseInt(req.params.publicationId);
+    const currentUserId = (req.user as { id: number }).id;
+
+    const publication = await db.getPublicationOwner(publicationId);
+
+    if (!publication)
+      return res.status(404).json({ error: "Publication not found" });
+    if (publication.user.id !== currentUserId)
+      return res.status(403).json({
+        error: "You're not the owner of this publication to do this action",
+      });
     const id = parseInt(req.params.postId);
 
     await db.deletePost(id);

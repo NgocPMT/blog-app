@@ -522,6 +522,14 @@ const getUserNotifications = async (id: number) => {
           id: true,
         },
       },
+      actor: {
+        select: {
+          Profile: true,
+          username: true,
+          email: true,
+          id: true,
+        },
+      },
     },
   });
   return notifications;
@@ -804,6 +812,11 @@ const getUserSavedPosts = async (
   return savedPosts;
 };
 
+const getReadingListById = async (id: number) => {
+  const readingList = await prisma.readingList.findUnique({ where: { id } });
+  return readingList || null;
+};
+
 const getReadingListSavedPosts = async (
   id: number,
   page?: number,
@@ -930,6 +943,43 @@ const getUserPublishedPosts = async (
       PostView: true,
       postTopics: true,
       comments: true,
+      publication: true,
+    },
+  });
+  return posts;
+};
+
+const getUserPendingPosts = async (
+  page: number,
+  limit: number,
+  userId: number
+) => {
+  const posts = await prisma.post.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: { createdAt: "desc" },
+    where: { userId, status: "PENDING" },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      status: true,
+      slug: true,
+      coverImageUrl: true,
+      createdAt: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          Profile: true,
+        },
+      },
+      PostReaction: true,
+      PostView: true,
+      postTopics: true,
+      comments: true,
+      publication: true,
     },
   });
   return posts;
@@ -1049,6 +1099,11 @@ const getSavedPostByPostIdAndReadingListId = async (
     where: { postId_readingListId: { postId, readingListId } },
   });
   return post;
+};
+
+const getSavedPostById = async (id: number) => {
+  const savedPost = await prisma.savedPost.findUnique({ where: { id } });
+  return savedPost || null;
 };
 
 const createUser = async (user: User) => {
@@ -1378,6 +1433,21 @@ const getPublications = async (
   return publications;
 };
 
+const getMember = async ({
+  publicationId,
+  userId,
+}: {
+  publicationId: number;
+  userId: number;
+}) => {
+  const member = await prisma.publicationToUser.findUnique({
+    where: {
+      userId_publicationId: { userId, publicationId },
+    },
+  });
+  return member || null;
+};
+
 const getUserPublications = async (
   userId: number,
   page?: number,
@@ -1418,6 +1488,7 @@ const getPublicationOwner = async (publicationId: number) => {
   const publication = await prisma.publicationToUser.findFirst({
     where: {
       publicationId,
+      isOwner: true,
     },
     select: {
       user: { select: { id: true } },
@@ -1777,6 +1848,7 @@ export default {
   markFirst15NotificationsAsRead,
   getUserDraftPosts,
   getUserPublishedPosts,
+  getUserPendingPosts,
   deactivateUser,
   activateUser,
   getReportedPostByPostIdAndUserId,
@@ -1800,4 +1872,7 @@ export default {
   declineInvitation,
   deleteInvitation,
   deleteUser,
+  getMember,
+  getReadingListById,
+  getSavedPostById,
 };

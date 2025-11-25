@@ -292,6 +292,20 @@ const postQueryValidation: ValidationChain[] = [
     .withMessage("Search query must be under 255 characters"),
 ];
 
+const readingListIdParamValidation: ValidationChain[] = [
+  param("readingListId")
+    .isInt()
+    .withMessage("Reading List ID must be an integer!")
+    .bail(),
+];
+
+const publicationIdParamValidation: ValidationChain[] = [
+  param("readingListId")
+    .isInt()
+    .withMessage("Reading List ID must be an integer!")
+    .bail(),
+];
+
 export {
   registerValidation,
   loginValidation,
@@ -313,6 +327,8 @@ export {
   postUpdateValidation,
   postSavingValidation,
   reportedPostValidation,
+  readingListIdParamValidation,
+  publicationIdParamValidation,
 };
 
 export default {
@@ -333,4 +349,6 @@ export default {
   postUpdateValidation,
   postSavingValidation,
   reportedPostValidation,
+  readingListIdParamValidation,
+  publicationIdParamValidation,
 };

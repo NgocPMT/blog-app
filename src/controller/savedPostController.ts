@@ -6,6 +6,9 @@ const handleGetSavedPosts = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
     const { readingListId } = req.params;
+    const readingList = await db.getReadingListById(parseInt(readingListId));
+    if (!readingList)
+      return res.status(404).json({ error: "Reading List not found" });
 
     const savedPosts = await db.getReadingListSavedPosts(
       parseInt(readingListId)
@@ -19,7 +22,12 @@ const handleCreateSavedPost = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
     const { readingListId } = req.params;
+    const readingList = await db.getReadingListById(parseInt(readingListId));
+    if (!readingList)
+      return res.status(404).json({ error: "Reading List not found" });
     const { postId } = req.body;
+    const post = await db.getPostById(postId);
+    if (!post) return res.status(404).json({ error: "Post not found" });
 
     const savedPost = await db.createSavedPost(postId, parseInt(readingListId));
 
@@ -34,6 +42,9 @@ const handleDeleteSavedPost = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
     const { savedPostId } = req.params;
+    const savedPost = await db.getSavedPostById(parseInt(savedPostId));
+    if (!savedPost)
+      return res.status(404).json({ error: "Saved Post not found" });
 
     const deletedSavedPost = await db.deleteSavedPost(parseInt(savedPostId));
 

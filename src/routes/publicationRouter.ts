@@ -2,6 +2,8 @@ import { Router } from "express";
 import publicationController from "../controller/publicationController.js";
 import publicationPostRouter from "./publicationPostRouter.js";
 import publicationMemberRouter from "./publicationMemberRouter.js";
+import validate from "../middlewares/validate.js";
+import { publicationIdParamValidation } from "../validation/validation.js";
 
 const publicationRouter = Router();
 
@@ -29,8 +31,16 @@ publicationRouter.delete(
   publicationController.handleDeletePublication
 );
 
-publicationRouter.use("/:publicationId/posts", publicationPostRouter);
+publicationRouter.use(
+  "/:publicationId/posts",
+  ...validate(publicationIdParamValidation),
+  publicationPostRouter
+);
 
-publicationRouter.use("/:publicationId/members", publicationMemberRouter);
+publicationRouter.use(
+  "/:publicationId/members",
+  ...validate(publicationIdParamValidation),
+  publicationMemberRouter
+);
 
 export default publicationRouter;

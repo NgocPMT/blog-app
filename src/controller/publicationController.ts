@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import db from "../db/queries.js";
 import passport from "passport";
+import validate from "../middlewares/validate.js";
+import { publicationIdParamValidation } from "../validation/validation.js";
 
 const handleGetPublications = [
   async (req: Request, res: Response) => {
@@ -23,12 +25,23 @@ const handleGetPublications = [
 
 const handleGetInvitations = [
   passport.authenticate("jwt", { session: false }),
+  ...validate(publicationIdParamValidation),
   async (req: Request, res: Response) => {
     const { page, limit } = req.query as {
       page?: string;
       limit?: string;
     };
     const publicationId = parseInt(req.params.publicationId);
+    const currentUserId = (req.user as { id: number }).id;
+
+    const publication = await db.getPublicationOwner(publicationId);
+
+    if (!publication)
+      return res.status(404).json({ error: "Publication not found" });
+    if (publication.user.id !== currentUserId)
+      return res.status(403).json({
+        error: "You're not the owner of this publication to do this action",
+      });
 
     const invitations = await db.getPublicationInvitations(
       publicationId,
@@ -41,6 +54,7 @@ const handleGetInvitations = [
 ];
 
 const handleGetPublicationProfile = [
+  ...validate(publicationIdParamValidation),
   async (req: Request, res: Response) => {
     const publicationId = parseInt(req.params.publicationId);
 
@@ -54,6 +68,9 @@ const handleCreatePublication = [
   passport.authenticate("jwt", { session: false }),
   async (req: Request, res: Response) => {
     const { name, bio, avatarUrl } = req.body;
+
+    if (!name || name.trim().length === 0)
+      return res.status(400).json({ error: "Name must not be empty" });
 
     const userId = (req.user as { id: number }).id;
 
@@ -72,12 +89,27 @@ const handleCreatePublication = [
 
 const handleUpdatePublication = [
   passport.authenticate("jwt", { session: false }),
+  ...validate(publicationIdParamValidation),
   async (req: Request, res: Response) => {
     const { name, bio, avatarUrl } = req.body;
-    const { publicationId } = req.params;
 
-    const publication = await db.updatePublication({
-      id: parseInt(publicationId),
+    if (!name || name.trim().length === 0)
+      return res.status(400).json({ error: "Name must not be empty" });
+
+    const publicationId = parseInt(req.params.publicationId);
+    const currentUserId = (req.user as { id: number }).id;
+
+    const publication = await db.getPublicationOwner(publicationId);
+
+    if (!publication)
+      return res.status(404).json({ error: "Publication not found" });
+    if (publication.user.id !== currentUserId)
+      return res.status(403).json({
+        error: "You're not the owner of this publication to do this action",
+      });
+
+    const updatedPublication = await db.updatePublication({
+      id: publicationId,
       name,
       bio,
       avatarUrl,
@@ -85,21 +117,32 @@ const handleUpdatePublication = [
 
     return res.json({
       message: "Updated publication successfully",
-      publication,
+      updatedPublication,
     });
   },
 ];
 
 const handleDeletePublication = [
   passport.authenticate("jwt", { session: false }),
+  ...validate(publicationIdParamValidation),
   async (req: Request, res: Response) => {
-    const { publicationId } = req.params;
+    const publicationId = parseInt(req.params.publicationId);
+    const currentUserId = (req.user as { id: number }).id;
 
-    const publication = await db.deletePublication(parseInt(publicationId));
+    const publication = await db.getPublicationOwner(publicationId);
+
+    if (!publication)
+      return res.status(404).json({ error: "Publication not found" });
+    if (publication.user.id !== currentUserId)
+      return res.status(403).json({
+        error: "You're not the owner of this publication to do this action",
+      });
+
+    const deletedPublication = await db.deletePublication(publicationId);
 
     return res.json({
       message: "Deleted publication successfully",
-      publication,
+      deletedPublication,
     });
   },
 ];
