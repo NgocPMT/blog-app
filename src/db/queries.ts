@@ -24,7 +24,7 @@ interface Comment {
 
 interface Profile {
   userId: number;
-  name: string;
+  fullname: string;
   avatarUrl: string;
   bio: string;
 }
@@ -514,11 +514,11 @@ const getUserProfileByUsername = async (username: string) => {
 };
 
 const updateProfile = async (profile: Profile) => {
-  const { userId, name, avatarUrl, bio } = profile;
+  const { userId, fullname, avatarUrl, bio } = profile;
   const updatedProfile = await prisma.profile.update({
     where: { userId },
     data: {
-      name,
+      fullname,
       avatarUrl,
       bio,
     },
@@ -574,30 +574,29 @@ const markFirst15NotificationsAsRead = async (id: number) => {
     )
   );
 };
-
 const createNotification = async (notification: Notification) => {
   const { userId, actorId, type } = notification;
   const actorProfile = await getUserProfile(actorId);
   let message;
   switch (type) {
     case "POST_REACTION": {
-      message = `${actorProfile?.name} reacted on your post.`;
+      message = `${actorProfile?.fullname} reacted on your post.`;
       break;
     }
     case "NEW_COMMENT": {
-      message = `${actorProfile?.name} commented on your post.`;
+      message = `${actorProfile?.fullname} commented on your post.`;
       break;
     }
     case "NEW_POST": {
-      message = `${actorProfile?.name} has created a new post.`;
+      message = `${actorProfile?.fullname} has created a new post.`;
       break;
     }
     case "PUBLICATION_INVITE": {
-      message = `${actorProfile?.name} invite you to join their publication.`;
+      message = `${actorProfile?.fullname} invite you to join their publication.`;
       break;
     }
     case "NEW_FOLLOW": {
-      message = `${actorProfile?.name} just followed you.`;
+      message = `${actorProfile?.fullname} just followed you.`;
       break;
     }
   }
@@ -625,7 +624,7 @@ const getUserFollowers = async (id: number, page?: number, limit?: number) => {
         select: {
           id: true,
           username: true,
-          Profile: { select: { name: true, avatarUrl: true } },
+          Profile: { select: { fullname: true, avatarUrl: true } },
         },
       },
     },
@@ -659,7 +658,7 @@ const getUserFollowersByUsername = async (username: string) => {
         select: {
           id: true,
           username: true,
-          Profile: { select: { name: true, avatarUrl: true } },
+          Profile: { select: { fullname: true, avatarUrl: true } },
         },
       },
     },
@@ -722,7 +721,7 @@ const getUserFollowings = async (id: number, page?: number, limit?: number) => {
         select: {
           id: true,
           username: true,
-          Profile: { select: { name: true, avatarUrl: true } },
+          Profile: { select: { fullname: true, avatarUrl: true } },
         },
       },
     },
@@ -765,7 +764,7 @@ const getUserFollowingsByUsername = async (username: string) => {
         select: {
           id: true,
           username: true,
-          Profile: { select: { name: true, avatarUrl: true } },
+          Profile: { select: { fullname: true, avatarUrl: true } },
         },
       },
     },
@@ -1137,7 +1136,7 @@ const createUser = async (user: User) => {
       password,
       Profile: {
         create: {
-          name: username,
+          fullname: username,
           bio: "",
           avatarUrl: null,
         },
@@ -1432,7 +1431,6 @@ const createPublication = async (publication: Publication) => {
 
   return createdPublication;
 };
-
 const getPublications = async (
   page?: number,
   limit?: number,
@@ -1612,7 +1610,7 @@ const getPublicationMembers = async (
               { username: { contains: searchQuery, mode: "insensitive" } },
               {
                 Profile: {
-                  name: { contains: searchQuery, mode: "insensitive" },
+                  fullname: { contains: searchQuery, mode: "insensitive" },
                 },
               },
             ],

@@ -284,15 +284,15 @@ const handleUpdateSelfProfile = [
         .json({ error: "User must logged in to do this action" });
 
     const userId = (req.user as { id: number }).id;
-    const { name, avatarUrl, bio } = req.body as {
-      name: string;
+    const { fullname, avatarUrl, bio } = req.body as {
+      fullname: string;
       avatarUrl: string;
       bio: string;
     };
 
     const updatedProfile = await db.updateProfile({
       userId,
-      name,
+      fullname,
       avatarUrl,
       bio,
     });

@@ -101,7 +101,7 @@ const postUpdateValidation: ValidationChain[] = [
 ];
 
 const profileValidation: ValidationChain[] = [
-  body("name")
+  body("fullname")
     .trim()
     .notEmpty()
     .withMessage(`Name ${emptyErr}`)

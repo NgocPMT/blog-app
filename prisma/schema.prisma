@@ -93,7 +93,7 @@ model UserFollows {
 
 model Profile {
   id        Int     @id @default(autoincrement())
-  name      String
+  fullname  String
   avatarUrl String?
   bio       String? @db.VarChar(160)
   userId    Int     @unique
